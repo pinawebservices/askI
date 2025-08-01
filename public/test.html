@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Website - Chatbot Integration</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        line-height: 1.6;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Mario&apos;s Italian Restaurant</h1>
+      <p>Authentic Italian cuisine in the heart of downtown</p>
+    </div>
+
+    <h2>About Us</h2>
+    <p>
+      Welcome to Mario&apos;s Italian Restaurant, where we serve traditional
+      Italian dishes made with the finest ingredients.
+    </p>
+
+    <h2>Our Menu</h2>
+    <p>
+      From handmade pasta to wood-fired pizzas, we offer a wide variety of
+      authentic Italian dishes.
+    </p>
+
+    <h2>Hours</h2>
+    <p>
+      Tuesday - Sunday: 5:00 PM - 10:00 PM<br />
+      Closed Mondays
+    </p>
+
+    <!-- AI Chatbot Widget -->
+    <script>
+      window.aiChatbotConfig = {
+        apiUrl: "http://localhost:3000",
+        businessType: "restaurant",
+        businessName: "Mario's Italian Restaurant",
+        customDetails: "",
+        theme: {
+          primaryColor: "#eb2473",
+          textColor: "#FFFFFF",
+        },
+      };
+    </script>
+    <script src="http://localhost:3000/embed.js"></script>
+  </body>
+</html>
