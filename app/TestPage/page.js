@@ -5,7 +5,7 @@ export default function Home() {
         <div className="min-h-screen bg-white overflow-hidden">
             {/* Hero Section */}
             {/*<div className="relative min-h-screen bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-300 text-white overflow-hidden">*/}
-            <div className="relative min-h-screen bg-gradient-to-br bg-cover bg-center bg-no-repeat" style={{backgroundImage: "chatbot-bg.png"}}>
+            <div className="relative min-h-screen bg-gradient-to-br bg-cover bg-center bg-no-repeat">
                 {/* Flowing Curved Background Shapes */}
                 <div className="absolute inset-0">
                     {/* Large flowing curve 1 */}
