@@ -1,4 +1,4 @@
-// public/embed.js - FULL VERSION
+// public/embed.js - WITH AUTO-FORMATTING
 (function () {
   console.log("🚀 Embed script starting...");
 
@@ -17,6 +17,92 @@
   // Check if widget already loaded
   if (window.aiChatbotLoaded) return;
   window.aiChatbotLoaded = true;
+
+  // Function to format AI responses for all business types
+  function formatAIResponse(text) {
+    // Remove emojis first
+    text = text.replace(/[🏠💰📏✨📝]/g, '');
+
+    // Check if this looks like a service/pricing response
+    const hasServiceInfo = text.includes("Price:") || text.includes("Duration:") || text.includes("Size:") ||
+        text.includes("What's Included:") || text.includes("Notes:");
+
+    if (!hasServiceInfo) {
+      return text; // Return unchanged if no service info detected
+    }
+
+    let formattedText = text;
+
+    // APARTMENT FORMATTING
+    if (text.includes("APARTMENT") || text.includes("floor plan") || text.includes("sq ft")) {
+      formattedText = formattedText
+          // Apartment titles - match exact patterns
+          .replace(/(STUDIO APARTMENT|ONE BEDROOM APARTMENT|TWO BEDROOM APARTMENT|THREE BEDROOM PENTHOUSE)/gi,
+              '<div class="service-title">$1</div>')
+          // Price - be very specific about the pattern
+          .replace(/Price:\s*\$([0-9,]+\s*-\s*\$[0-9,]+\/month)/gi,
+              '<div class="price-line"><strong>Price:</strong> $$1</div>')
+          .replace(/Price:\s*(\$[0-9,]+-\$[0-9,]+\/month|\$[0-9,]+\/month)/gi,
+              '<div class="price-line"><strong>Price:</strong> $1</div>')
+          // Size - look for square footage patterns
+          .replace(/(?:Size|Square footage):\s*([0-9,-]+\s*sq\s*ft)/gi,
+              '<div class="size-line"><strong>Size:</strong> $1</div>')
+          // Includes - capture everything until the next field or end
+          .replace(/Includes:\s*([^-\n\r]*?)(?=\s*(?:Duration:|Notes:|$))/gi,
+              '<div class="includes-line"><strong>Includes:</strong> $1</div>')
+          // Notes - capture everything until end
+          .replace(/Notes:\s*([^\n\r]*)/gi,
+              '<div class="notes-line"><strong>Notes:</strong> $1</div>');
+    }
+
+    // WELLNESS/SPA FORMATTING
+    else if (text.includes("massage") || text.includes("Bodywork") || text.includes("Facial") ||
+        text.includes("session") || text.includes("therapy")) {
+      formattedText = formattedText
+          // Service titles - look for specific wellness service names
+          .replace(/(Customized Bodywork[^:\n\r]*|Radiant Face Massage[^:\n\r]*|Sculpt and Restore[^:\n\r]*)/gi,
+              '<div class="service-title">$1</div>')
+          // Duration - specific to wellness
+          .replace(/Duration:\s*([0-9]+\s*minutes?)/gi,
+              '<div class="duration-line"><strong>Duration:</strong> $1</div>')
+          // Perfect For - wellness specific
+          .replace(/Perfect For:\s*([^\n\r]*)/gi,
+              '<div class="perfect-for-line"><strong>Perfect For:</strong> $1</div>');
+    }
+
+    // SALON/BEAUTY FORMATTING
+    else if (text.includes("Cut") || text.includes("Color") || text.includes("Manicure") ||
+        text.includes("Pedicure") || text.includes("Hair") || text.includes("Nail")) {
+      formattedText = formattedText
+          // Beauty service titles
+          .replace(/([A-Z][^:\n\r]*(Cut|Color|Manicure|Pedicure|Highlights|Style)[^:\n\r]*?)(?=\s*Price:)/gi,
+              '<div class="service-title">$1</div>')
+          // Duration for beauty services
+          .replace(/Duration:\s*([0-9-]+\s*(?:minutes?|hours?))/gi,
+              '<div class="duration-line"><strong>Duration:</strong> $1</div>');
+    }
+
+    // UNIVERSAL FORMATTING (applies to all business types) - More specific patterns
+    formattedText = formattedText
+        // General price formatting (if not already matched above)
+        .replace(/(?<!<strong>)Price:\s*(\$[^\n\r]*?)(?=\s*(?:-|Size:|Duration:|Includes:|Notes:|$))/gi,
+            '<div class="price-line"><strong>Price:</strong> $1</div>')
+        // What's included/Features/Includes (if not already matched)
+        .replace(/(?<!<strong>)(?:What's Included|Includes):\s*([^\n\r]*?)(?=\s*(?:Duration:|Notes:|$))/gi,
+            '<div class="includes-line"><strong>Includes:</strong> $1</div>')
+        // Notes (if not already matched)
+        .replace(/(?<!<strong>)Notes:\s*([^\n\r]*)/gi,
+            '<div class="notes-line"><strong>Notes:</strong> $1</div>')
+        // Add spacing between services
+        .replace(/(<div class="service-title")/g, '<div class="service-spacer"></div>$1')
+        // Clean up formatting artifacts
+        .replace(/\*\*/g, '')
+        .replace(/--/g, '-')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    return formattedText;
+  }
 
   // Create widget container
   const widgetContainer = document.createElement("div");
@@ -133,6 +219,8 @@
         padding: 16px;
         overflow-y: auto;
         background: #f9fafb;
+        max-height: 400px;
+        min-height: 300px;
       "></div>
       
       <div style="
@@ -194,7 +282,7 @@
     }
   }
 
-  // Render messages
+  // Render messages with formatting
   function renderMessages() {
     const container = document.getElementById("messages-container");
     if (!container) return;
@@ -208,34 +296,45 @@
         margin-bottom: 16px;
         ${
           message.role === "user"
-            ? "justify-content: flex-end;"
-            : "justify-content: flex-start;"
-        }
+              ? "justify-content: flex-end;"
+              : "justify-content: flex-start;"
+      }
       `;
+
+      // Format the content if it's from assistant
+      let messageContent = message.content;
+      if (message.role === "assistant") {
+        messageContent = formatAIResponse(message.content);
+      }
 
       messageDiv.innerHTML = `
         <div style="
-          max-width: 80%;
-          padding: 10px 14px;
+          max-width: 85%;
+          padding: 12px 16px;
           border-radius: 18px;
           font-size: 14px;
-          line-height: 1.4;
+          line-height: 1.5;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: normal;
           ${
-            message.role === "user"
+          message.role === "user"
               ? `background-color: ${config.theme.primaryColor}; color: white;`
               : "background-color: white; color: #374151; border: 1px solid #e5e7eb;"
-          }
+      }
         ">
-          ${message.content}
+          <div class="message-content" style="word-wrap: break-word; overflow-wrap: break-word;">
+            ${messageContent}
+          </div>
           <div style="
             font-size: 11px;
-            margin-top: 4px;
+            margin-top: 8px;
             opacity: 0.7;
           ">
             ${message.timestamp.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+        hour: "2-digit",
+        minute: "2-digit",
+      })}
           </div>
         </div>
       `;
@@ -301,7 +400,7 @@
       messages.push({
         role: "assistant",
         content:
-          "I apologize, but I&apos;m having trouble responding right now. Please try again in a moment or call us directly.",
+            "I apologize, but I&apos;m having trouble responding right now. Please try again in a moment or call us directly.",
         timestamp: new Date(),
       });
       renderMessages();
@@ -315,7 +414,7 @@
     const typingDiv = document.createElement("div");
     typingDiv.id = "typing-indicator";
     typingDiv.style.cssText =
-      "display: flex; justify-content: flex-start; margin-bottom: 16px;";
+        "display: flex; justify-content: flex-start; margin-bottom: 16px;";
     typingDiv.innerHTML = `
       <div style="
         background-color: white;
@@ -383,7 +482,7 @@
         }
       }, 100);
 
-      // Add CSS for animations
+      // Add CSS for animations and formatting
       const style = document.createElement("style");
       style.textContent = `
         .bounce-dot {
@@ -400,13 +499,81 @@
             transform: scale(1);
           }
         }
+        
+        /* Universal professional service formatting - Bold style */
+        .service-title {
+          font-weight: 700;
+          font-size: 15px;
+          margin: 12px 0 6px 0;
+          padding: 6px 0;
+          border-bottom: 1px solid #e5e7eb;
+          line-height: 1.3;
+          color: #1f2937;
+        }
+        
+        .price-line {
+          margin: 4px 0;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        
+        .size-line {
+          margin: 4px 0;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        
+        .duration-line {
+          margin: 4px 0;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        
+        .includes-line {
+          margin: 4px 0;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.5;
+          word-wrap: break-word;
+        }
+        
+        .notes-line {
+          margin: 4px 0;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        
+        .perfect-for-line {
+          margin: 4px 0;
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        
+        .service-spacer {
+          margin: 16px 0;
+        }
+        
+        .message-content {
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: normal;
+        }
+        
+        .message-content strong {
+          font-weight: 700;
+        }
       `;
       document.head.appendChild(style);
 
       // Add to page
       document.body.appendChild(widgetContainer);
 
-      console.log("✅ Full widget initialized successfully!");
+      console.log("✅ Full widget with formatting initialized successfully!");
     } catch (error) {
       console.error("❌ Error initializing widget:", error);
     }

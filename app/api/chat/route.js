@@ -14,7 +14,11 @@ export async function POST(request) {
         // ← Add customerId to the destructuring
         const { messages, businessType = 'default', customDetails = '', customerId } = await request.json();
 
-        console.log('Request parsed:', { businessType, messageCount: messages?.length, customerId });
+        console.log('🔍 DEBUG - Received request:', { businessType, customerId, messageCount: messages?.length });
+
+        if (!messages || !Array.isArray(messages)) {
+            return corsResponse({ error: 'Messages array is required' }, 400);
+        }
 
         // In your API route, add this check:
         const origin = request.headers.get('origin');
@@ -28,26 +32,63 @@ export async function POST(request) {
             });
         }
 
-        if (!messages || !Array.isArray(messages)) {
-            return corsResponse({ error: 'Messages array is required' }, 400);
-        }
-
-        // ← Add customer data loading
+        // Enhanced customer data loading with debugging
         let customerData = null;
         if (customerId) {
-            console.log('🔍 Looking for customer:', customerId);
+            console.log('🔍 DEBUG - Looking for customer:', customerId);
             customerData = getCustomerData(customerId);
-            console.log('📊 Customer data found:', !!customerData);
+            console.log('📊 DEBUG - Customer data found:', !!customerData);
+
             if (customerData) {
-                console.log('📋 Customer business:', customerData.businessName);
+                console.log('📋 DEBUG - Customer business:', customerData.businessName);
+                console.log('🏷️ DEBUG - Services count:', customerData.servicesPricing?.length || 0);
+
+                // Log the actual services data
+                if (customerData.servicesPricing) {
+                    customerData.servicesPricing.forEach((category, index) => {
+                        console.log(`📦 DEBUG - Category ${index}:`, category.category);
+                        console.log(`🔧 DEBUG - Services in category:`, category.services?.length || 0);
+                    });
+                }
+            } else {
+                console.log('❌ DEBUG - No customer data found for ID:', customerId);
             }
         } else {
-            console.log('⚠️ No customerId provided, using fallback');
+            console.log('⚠️ DEBUG - No customerId provided');
         }
 
-        // ← Update to use customer data
+        // Get the prompt and log it
         const systemPrompt = getPrompt(businessType, customDetails, customerData);
-        console.log('📝 Using prompt type:', customerData ? 'custom' : 'fallback');
+        console.log('📝 DEBUG - Prompt length:', systemPrompt.length);
+        console.log('📝 DEBUG - Prompt preview (first 500 chars):', systemPrompt.substring(0, 500));
+
+        // Find and log the services section specifically
+        const servicesStart = systemPrompt.indexOf('DETAILED SERVICES & PRICING:');
+        const servicesEnd = systemPrompt.indexOf('HOURS OF OPERATION:');
+
+        if (servicesStart > -1 && servicesEnd > -1) {
+            const servicesSection = systemPrompt.substring(servicesStart, servicesEnd);
+            console.log('🎯 DEBUG - Services section found, length:', servicesSection.length);
+            console.log('🎯 DEBUG - Services section preview:', servicesSection.substring(0, 500));
+        } else {
+            console.log('❌ DEBUG - Could not find services section in prompt');
+        }
+
+        // Log if services are properly formatted in the prompt
+        if (systemPrompt.includes('=== BODYWORK SESSIONS ===') ||
+            systemPrompt.includes('Customized Bodywork') ||
+            systemPrompt.includes('SERVICE 1:')) {
+            console.log('✅ DEBUG - Services properly included in prompt');
+        } else {
+            console.log('❌ DEBUG - Services NOT found in prompt');
+            // Log a section of the prompt to see what's actually there
+            const servicesSection = systemPrompt.indexOf('DETAILED SERVICES');
+            if (servicesSection > -1) {
+                console.log('📝 DEBUG - Services section preview:',
+                    systemPrompt.substring(servicesSection, servicesSection + 800));
+            }
+        }
+
 
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -60,15 +101,25 @@ export async function POST(request) {
         });
 
         const assistantMessage = completion.choices[0].message.content;
-        console.log('✅ OpenAI response received');
+        console.log('✅ DEBUG - OpenAI response received, length:', assistantMessage.length);
 
         return corsResponse({
             message: assistantMessage,
-            usage: completion.usage
+            usage: completion.usage,
+            // debug info
+            debug: {
+                customerFound: !!customerData,
+                customerId: customerId,
+                servicesCount: customerData?.servicesPricing?.length || 0,
+                promptLength: systemPrompt.length,
+                businessType: businessType,
+                hasCustomerData: !!customerData,
+                customerBusinessName: customerData?.businessName || 'none'
+            }
         });
 
     } catch (error) {
-        console.error('Chat API Error:', error);
+        console.error('❌ Chat API Error:', error);
 
         if (error.code === 'insufficient_quota') {
             return corsResponse({
