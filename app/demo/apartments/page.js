@@ -192,12 +192,12 @@ export default function ApartmentsPage() {
             <p><strong>Ask questions about our apartments and see the structured responses:</strong></p>
             <div className="sample-questions">
               <ul>
-                <li>"What apartments do you have available?"</li>
-                <li>"Show me your floor plans and pricing"</li>
-                <li>"What amenities do you offer?"</li>
-                <li>"Can I schedule a tour?"</li>
-                <li>"Do you allow pets?"</li>
-                <li>"What's included in the rent?"</li>
+                <li>&quot;What apartments do you have available?&quot;</li>
+                <li>&quot;Show me your floor plans and pricing&quot;</li>
+                <li>&quot;What amenities do you offer?&quot;</li>
+                <li>&quot;Can I schedule a tour?&quot;</li>
+                <li>&quot;Do you allow pets?&quot;</li>
+                <li>&quot;What&apos;s included in the rent?&quot;</li>
               </ul>
             </div>
             <p><em>Click the blue chat button in the bottom-right corner!</em></p>
@@ -205,7 +205,7 @@ export default function ApartmentsPage() {
 
           <div className="cta">
             <h2>Ready to Find Your New Home?</h2>
-            <p>Schedule a tour today and see why Sunset Bay is Fort Lauderdale's premier apartment community!</p>
+            <p>Schedule a tour today and see why Sunset Bay is Fort Lauderdale&apos;s premier apartment community!</p>
             <p><strong>The AI assistant will collect your information and schedule a tour!</strong></p>
           </div>
 
@@ -228,23 +228,23 @@ export default function ApartmentsPage() {
         </div>
 
         {/* AI Chatbot Widget for Apartment Complex */}
-        <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                        window.aiChatbotConfig = {
-                            apiUrl: "http://localhost:3000",
-                            businessType: "apartment_complex", 
-                            businessName: "Sunset Bay Apartments",
-                            customerId: "sunset-bay-001",
-                            theme: {
-                                primaryColor: "#1E88E5",
-                                textColor: "#FFFFFF"
-                            }
-                        };
-                    `
-            }}
-        />
-        <script src="http://localhost:3000/embed.js" />
+        {/*<script*/}
+        {/*    dangerouslySetInnerHTML={{*/}
+        {/*      __html: `*/}
+        {/*                window.aiChatbotConfig = {*/}
+        {/*                    apiUrl: "http://localhost:3000",*/}
+        {/*                    businessType: "apartment_complex", */}
+        {/*                    businessName: "Sunset Bay Apartments",*/}
+        {/*                    customerId: "sunset-bay-001",*/}
+        {/*                    theme: {*/}
+        {/*                        primaryColor: "#1E88E5",*/}
+        {/*                        textColor: "#FFFFFF"*/}
+        {/*                    }*/}
+        {/*                };*/}
+        {/*            `*/}
+        {/*    }}*/}
+        {/*/>*/}
+        {/*<script src="http://localhost:3000/embed.js" />*/}
       </>
   );
 }
