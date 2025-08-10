@@ -39,3 +39,61 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ============================================
+# 🚨 CRITICAL SECURITY - API KEYS & SECRETS
+# ============================================
+
+# Google API credentials - NEVER COMMIT THESE!
+**/credentials.json
+service-account.json
+tokens.json
+*-credentials.json
+*-service-account.json
+
+# OAuth tokens and API keys
+*.pem
+*.p12
+*.key
+*.cert
+
+# Database credentials
+database.json
+db-config.json
+
+# Any config files with secrets
+config.json
+secrets.json
+
+# OpenAI API keys (if stored in files)
+openai-key.txt
+*.api-key
+
+# MCP server secrets
+mcp-server/credentials.json
+mcp-server/tokens.json
+mcp-server/service-account.json
+
+# Customer data (for privacy)
+customer-data/
+uploads/
+documents/
+
+# Logs that might contain sensitive data
+logs/
+*.log
+
+# IDE and editor files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

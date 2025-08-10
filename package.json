@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -38,6 +39,7 @@
     "cmdk": "^1.1.1",
     "dependencies": "^0.0.1",
     "embla-carousel-react": "^8.6.0",
+    "googleapis": "^155.0.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.536.0",
     "next": "15.4.4",

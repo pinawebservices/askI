@@ -100,12 +100,17 @@ export default function App() {
         <div className="min-h-screen bg-background">
             {/* Header */}
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center justify-between">
+                <div className="w-full px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
                     <div className="flex items-center space-x-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-chart-1 to-chart-2 text-white">
-                            <MessageCircle className="h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-chart-1 to-chart-2 text-white">
+                            {/*<MessageCircle className="h-4 w-4" />*/}
+                            <svg className="h-7 w-7" viewBox="0 0 179.25 108.52" fill="currentColor">
+                                <path fillRule="evenodd" d="M116.44,108.52c29.62,0,62.8-22.28,62.8-54.26S146.06,0,116.44,0h-1.56c22.22,0,40.4,18.18,40.4,40.4s-18.18,40.4-40.4,40.4h-50.81c-22.22,0-40.4-18.18-40.4-40.4S41.85,0,64.07,0h-1.26C33.18,0,0,22.28,0,54.26s33.18,54.26,62.8,54.26h53.64Z"/>
+                                <path d="M65.58,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
+                                <path d="M113.66,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
+                            </svg>
                         </div>
-                        <span className="text-lg font-semibold">ChatAssist</span>
+                        <span className="text-lg font-semibold">WidgetWise</span>
                     </div>
 
                     {/* Desktop Navigation */}
@@ -148,9 +153,9 @@ export default function App() {
             </header>
 
             {/* Hero Section */}
-            <section className="container py-24 md:py-32 relative">
+            <section className="w-full px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative">
                 {/* Subtle gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 via-transparent to-chart-1/5 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-chart-1/10 via-chart-2/10 to-chart-3/10 pointer-events-none" />
 
                 <div className="text-center space-y-8 max-w-4xl mx-auto relative">
                     <Badge variant="secondary" className="mx-auto bg-gradient-to-r from-chart-1/10 to-chart-2/10 border-chart-1/20">
@@ -194,7 +199,7 @@ export default function App() {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="container py-24 bg-gradient-to-b from-muted/20 to-muted/40">
+            <section id="features" className="w-full px-4 sm:px-6 lg:px-8 py-24 bg-gradient-to-b from-muted/20 to-muted/40">
                 <div className="text-center space-y-4 mb-16">
                     <Badge variant="secondary" className="bg-chart-3/10 border-chart-3/20 text-chart-3">Features</Badge>
                     <h2 className="text-3xl md:text-4xl">
@@ -223,46 +228,46 @@ export default function App() {
             </section>
 
             {/* Testimonials Section */}
-            <section id="testimonials" className="container py-24 relative">
-                {/* Subtle gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-chart-5/5 via-transparent to-chart-4/5 pointer-events-none" />
+            {/*<section id="testimonials" className="w-full px-4 sm:px-6 lg:px-8 py-24 relative">*/}
+            {/*    /!* Subtle gradient background *!/*/}
+            {/*    <div className="absolute inset-0 bg-gradient-to-tr from-chart-5/5 via-transparent to-chart-4/5 pointer-events-none" />*/}
 
-                <div className="text-center space-y-4 mb-16 relative">
-                    <Badge variant="secondary" className="bg-chart-2/10 border-chart-2/20 text-chart-2">Testimonials</Badge>
-                    <h2 className="text-3xl md:text-4xl">
-                        Trusted by teams worldwide
-                    </h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                        Join thousands of businesses that are already converting more visitors with ChatAssist.
-                    </p>
-                </div>
+            {/*    <div className="text-center space-y-4 mb-16 relative">*/}
+            {/*        <Badge variant="secondary" className="bg-chart-2/10 border-chart-2/20 text-chart-2">Testimonials</Badge>*/}
+            {/*        <h2 className="text-3xl md:text-4xl">*/}
+            {/*            Trusted by teams worldwide*/}
+            {/*        </h2>*/}
+            {/*        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">*/}
+            {/*            Join thousands of businesses that are already converting more visitors with ChatAssist.*/}
+            {/*        </p>*/}
+            {/*    </div>*/}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
-                    {testimonials.map((testimonial, index) => (
-                        <Card key={index} className={`border-0 shadow-sm bg-background/80 backdrop-blur-sm hover:shadow-md transition-all duration-300 border-l-4 ${testimonial.accent}`}>
-                            <CardHeader>
-                                <div className="flex gap-1 mb-4">
-                                    {[...Array(testimonial.rating)].map((_, i) => (
-                                        <Star key={i} className="h-4 w-4 fill-chart-4 text-chart-4" />
-                                    ))}
-                                </div>
-                                <CardDescription className="text-base leading-relaxed">
-                                    "{testimonial.content}"
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div>
-                                    <p className="font-medium">{testimonial.name}</p>
-                                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </section>
+            {/*    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">*/}
+            {/*        {testimonials.map((testimonial, index) => (*/}
+            {/*            <Card key={index} className={`border-0 shadow-sm bg-background/80 backdrop-blur-sm hover:shadow-md transition-all duration-300 border-l-4 ${testimonial.accent}`}>*/}
+            {/*                <CardHeader>*/}
+            {/*                    <div className="flex gap-1 mb-4">*/}
+            {/*                        {[...Array(testimonial.rating)].map((_, i) => (*/}
+            {/*                            <Star key={i} className="h-4 w-4 fill-chart-4 text-chart-4" />*/}
+            {/*                        ))}*/}
+            {/*                    </div>*/}
+            {/*                    <CardDescription className="text-base leading-relaxed">*/}
+            {/*                        &apos;{testimonial.content}&apos;*/}
+            {/*                    </CardDescription>*/}
+            {/*                </CardHeader>*/}
+            {/*                <CardContent>*/}
+            {/*                    <div>*/}
+            {/*                        <p className="font-medium">{testimonial.name}</p>*/}
+            {/*                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>*/}
+            {/*                    </div>*/}
+            {/*                </CardContent>*/}
+            {/*            </Card>*/}
+            {/*        ))}*/}
+            {/*    </div>*/}
+            {/*</section>*/}
 
             {/* FAQ Section */}
-            <section id="faq" className="container py-24 bg-gradient-to-b from-muted/10 to-muted/30">
+            <section id="faq" className="w-full px-4 sm:px-6 lg:px-8 py-24 bg-gradient-to-b from-muted/10 to-muted/30">
                 <div className="text-center space-y-4 mb-16">
                     <Badge variant="secondary" className="bg-chart-5/10 border-chart-5/20 text-chart-5">FAQ</Badge>
                     <h2 className="text-3xl md:text-4xl">
@@ -290,7 +295,7 @@ export default function App() {
             </section>
 
             {/* CTA Section */}
-            <section className="container py-24 relative">
+            <section className="w-full px-4 sm:px-6 lg:px-8 py-24 relative">
                 {/* Gradient background */}
                 <div className="absolute inset-0 bg-gradient-to-r from-chart-1/10 via-chart-2/10 to-chart-3/10 pointer-events-none rounded-2xl" />
 
@@ -315,14 +320,18 @@ export default function App() {
 
             {/* Footer */}
             <footer className="border-t bg-gradient-to-b from-background to-muted/20">
-                <div className="container py-12">
+                <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div className="space-y-4">
                             <div className="flex items-center space-x-2">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-chart-1 to-chart-2 text-white">
-                                    <MessageCircle className="h-4 w-4" />
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-chart-1 to-chart-2 text-white">
+                                    <svg className="h-7 w-7" viewBox="0 0 179.25 108.52" fill="currentColor">
+                                        <path fillRule="evenodd" d="M116.44,108.52c29.62,0,62.8-22.28,62.8-54.26S146.06,0,116.44,0h-1.56c22.22,0,40.4,18.18,40.4,40.4s-18.18,40.4-40.4,40.4h-50.81c-22.22,0-40.4-18.18-40.4-40.4S41.85,0,64.07,0h-1.26C33.18,0,0,22.28,0,54.26s33.18,54.26,62.8,54.26h53.64Z"/>
+                                        <path d="M65.58,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
+                                        <path d="M113.66,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
+                                    </svg>
                                 </div>
-                                <span className="text-lg font-semibold">ChatAssist</span>
+                                <span className="text-lg font-semibold">WidgetWise</span>
                             </div>
                             <p className="text-sm text-muted-foreground">
                                 The AI-powered chatbot that turns website visitors into qualified leads. Engage, capture, convert.
