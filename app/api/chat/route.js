@@ -1,7 +1,8 @@
-// app/api/chat/route.js
+// app/api/chat/route.js - ENHANCED VERSION with Google Sheets Integration
 import OpenAI from 'openai';
 import { getPrompt } from '@/lib/prompts';
-import { getCustomerData } from '@/lib/customerDatabase'; // ← Add this import
+import { getEnhancedCustomerData } from '@/lib/customerDatabase'; // Updated import
+
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -11,84 +12,72 @@ const openai = new OpenAI({
 
 export async function POST(request) {
     try {
-        // ← Add customerId to the destructuring
         const { messages, businessType = 'default', customDetails = '', customerId } = await request.json();
 
-        console.log('🔍 DEBUG - Received request:', { businessType, customerId, messageCount: messages?.length });
+        console.log('🔍 DEBUG - Enhanced API received request:', {
+            businessType,
+            customerId,
+            messageCount: messages?.length
+        });
 
         if (!messages || !Array.isArray(messages)) {
             return corsResponse({ error: 'Messages array is required' }, 400);
         }
 
-        // In your API route, add this check:
+        // Security check
         const origin = request.headers.get('origin');
-
         if (origin?.includes('localhost') && !isDevelopment) {
-            // Only block localhost in production
-            console.log('Blocked localhost request in production:', { origin, referer });
+            console.log('Blocked localhost request in production:', { origin });
             return new Response(JSON.stringify({ error: 'Unauthorized access' }), {
                 status: 401,
                 headers: { 'Content-Type': 'application/json', ...corsHeaders },
             });
         }
 
-        // Enhanced customer data loading with debugging
+        // Enhanced customer data loading with live Google Sheets
         let customerData = null;
+        let liveDataStatus = 'none';
+
         if (customerId) {
-            console.log('🔍 DEBUG - Looking for customer:', customerId);
-            customerData = getCustomerData(customerId);
-            console.log('📊 DEBUG - Customer data found:', !!customerData);
+            console.log('🔍 Fetching enhanced data for:', customerId);
+
+            // This now fetches live Google Sheets data!
+            customerData = await getEnhancedCustomerData(customerId);
 
             if (customerData) {
-                console.log('📋 DEBUG - Customer business:', customerData.businessName);
-                console.log('🏷️ DEBUG - Services count:', customerData.servicesPricing?.length || 0);
+                console.log('📋 Customer found:', customerData.businessName);
 
-                // Log the actual services data
-                if (customerData.servicesPricing) {
-                    customerData.servicesPricing.forEach((category, index) => {
-                        console.log(`📦 DEBUG - Category ${index}:`, category.category);
-                        console.log(`🔧 DEBUG - Services in category:`, category.services?.length || 0);
-                    });
+                if (customerData.liveData) {
+                    liveDataStatus = 'live_sheets';
+                    console.log('✅ Live Google Sheets data loaded!');
+                    console.log(`📊 Live services: ${customerData.liveData.services.length}`);
+                    console.log(`📅 Live schedule: ${customerData.liveData.schedule.length}`);
+                    console.log(`🎉 Live specials: ${customerData.liveData.specials.length}`);
+                    console.log(`🕒 Last updated: ${customerData.liveData.lastUpdated}`);
+                } else {
+                    liveDataStatus = 'static_fallback';
+                    console.log('📊 Using static fallback data (Google Sheets not available)');
                 }
             } else {
-                console.log('❌ DEBUG - No customer data found for ID:', customerId);
+                console.log('❌ No customer data found for ID:', customerId);
             }
         } else {
-            console.log('⚠️ DEBUG - No customerId provided');
+            console.log('⚠️ No customerId provided');
         }
 
-        // Get the prompt and log it
-        const systemPrompt = getPrompt(businessType, customDetails, customerData);
-        console.log('📝 DEBUG - Prompt length:', systemPrompt.length);
-        console.log('📝 DEBUG - Prompt preview (first 500 chars):', systemPrompt.substring(0, 500));
+        // Build enhanced system prompt with live data
+        const systemPrompt = buildEnhancedPrompt(businessType, customDetails, customerData);
 
-        // Find and log the services section specifically
-        const servicesStart = systemPrompt.indexOf('DETAILED SERVICES & PRICING:');
-        const servicesEnd = systemPrompt.indexOf('HOURS OF OPERATION:');
+        console.log('📝 Enhanced prompt length:', systemPrompt.length);
+        console.log('📝 Live data status:', liveDataStatus);
 
-        if (servicesStart > -1 && servicesEnd > -1) {
-            const servicesSection = systemPrompt.substring(servicesStart, servicesEnd);
-            console.log('🎯 DEBUG - Services section found, length:', servicesSection.length);
-            console.log('🎯 DEBUG - Services section preview:', servicesSection.substring(0, 500));
-        } else {
-            console.log('❌ DEBUG - Could not find services section in prompt');
-        }
-
-        // Log if services are properly formatted in the prompt
-        if (systemPrompt.includes('=== BODYWORK SESSIONS ===') ||
-            systemPrompt.includes('Customized Bodywork') ||
-            systemPrompt.includes('SERVICE 1:')) {
-            console.log('✅ DEBUG - Services properly included in prompt');
-        } else {
-            console.log('❌ DEBUG - Services NOT found in prompt');
-            // Log a section of the prompt to see what's actually there
-            const servicesSection = systemPrompt.indexOf('DETAILED SERVICES');
-            if (servicesSection > -1) {
-                console.log('📝 DEBUG - Services section preview:',
-                    systemPrompt.substring(servicesSection, servicesSection + 800));
+        // Log if we have live pricing data
+        if (customerData?.liveData?.services) {
+            const sampleService = customerData.liveData.services[0];
+            if (sampleService) {
+                console.log(`💰 Sample live pricing: ${sampleService.name} - ${sampleService.price}`);
             }
         }
-
 
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -96,30 +85,29 @@ export async function POST(request) {
                 { role: "system", content: systemPrompt },
                 ...messages
             ],
-            max_tokens: 300, // ← Increased for more detailed customer responses
+            max_tokens: 300,
             temperature: 0.7,
         });
 
         const assistantMessage = completion.choices[0].message.content;
-        console.log('✅ DEBUG - OpenAI response received, length:', assistantMessage.length);
+        console.log('✅ OpenAI response with live data:', assistantMessage.length, 'characters');
 
         return corsResponse({
             message: assistantMessage,
             usage: completion.usage,
-            // debug info
             debug: {
                 customerFound: !!customerData,
                 customerId: customerId,
-                servicesCount: customerData?.servicesPricing?.length || 0,
-                promptLength: systemPrompt.length,
-                businessType: businessType,
-                hasCustomerData: !!customerData,
-                customerBusinessName: customerData?.businessName || 'none'
+                liveDataStatus: liveDataStatus,
+                hasLiveData: !!customerData?.liveData,
+                liveDataTimestamp: customerData?.liveData?.lastUpdated,
+                businessName: customerData?.businessName || 'none',
+                servicesCount: customerData?.liveData?.services?.length || 0
             }
         });
 
     } catch (error) {
-        console.error('❌ Chat API Error:', error);
+        console.error('❌ Enhanced Chat API Error:', error);
 
         if (error.code === 'insufficient_quota') {
             return corsResponse({
@@ -132,6 +120,14 @@ export async function POST(request) {
             details: error.message
         }, 500);
     }
+}
+
+import { buildMultiSourcePrompt } from '@/lib/promptBuilder';
+
+// Enhanced prompt building function with multi-source support
+function buildEnhancedPrompt(businessType, customDetails, customerData) {
+    // Use the new multi-source prompt builder
+    return buildMultiSourcePrompt(businessType, customDetails, customerData);
 }
 
 // Handle CORS for embed usage
