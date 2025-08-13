@@ -5,9 +5,10 @@
   // Configuration
   const config = window.aiChatbotConfig || {
     apiUrl: "http://localhost:3000",
-    businessType: "restaurant",
-    businessName: "Your Business",
+    businessType: "wellness",  // Update default
+    businessName: "Serenity Wellness Center",  // Update default
     customDetails: "",
+    clientId: "demo-wellness",  // ADD THIS LINE
     theme: {
       primaryColor: "#2563EB",
       textColor: "#FFFFFF",
@@ -307,7 +308,9 @@
           })),
           businessType: config.businessType,
           customDetails: config.customDetails,
-          customerId: config.customerId
+          customerId: config.customerId,
+          // ADD THIS LINE FOR PINECONE:
+          clientId: 'demo-wellness'  // This tells Pinecone which namespace to use
         }),
       });
 
@@ -324,6 +327,15 @@
         });
         renderMessages();
         console.log("✅ Response received");
+
+        // ADD THIS: Log Pinecone debug info if available
+        if (data.debug) {
+          console.log("📊 Pinecone stats:", {
+            chunksUsed: data.debug.chunksUsed,
+            contextSize: data.debug.contextSize,
+            topScore: data.debug.topScore
+          });
+        }
       }
     } catch (error) {
       console.error("❌ Chat error:", error);
@@ -331,8 +343,7 @@
 
       messages.push({
         role: "assistant",
-        content:
-            "I apologize, but I&apos;m having trouble responding right now. Please try again in a moment or call us directly.",
+        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment or call us directly.",
         timestamp: new Date(),
       });
       renderMessages();
@@ -487,4 +498,33 @@
   } else {
     initWidget();
   }
+
+  // ADD THIS TEST FUNCTION at the end of your embed.js (before the final })();)
+// This lets you test Pinecone directly from browser console
+  window.testPineconeChat = async function(question) {
+    console.log('🧪 Testing Pinecone with:', question);
+
+    try {
+      const response = await fetch(`${config.apiUrl}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: question }],
+          clientId: 'demo-wellness'  // Pinecone namespace
+        })
+      });
+
+      const data = await response.json();
+      console.log('✅ Response:', data.message);
+      if (data.debug) {
+        console.log('📊 Debug info:', data.debug);
+      }
+      return data;
+    } catch (error) {
+      console.error('❌ Test failed:', error);
+    }
+  };
+
 })();
