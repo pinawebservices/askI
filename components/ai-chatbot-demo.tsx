@@ -25,10 +25,9 @@ export default function ChatbotProvider() {
         // Configure chatbot
         window.aiChatbotConfig = {
             apiUrl: 'https://aski-chatbot.vercel.app',
-            businessType: 'apartment_complex',
-            businessName: 'Sunset Bay Apartments',
-            customDetails: 'Friendly and welcoming community',
-            customerId: 'apt-comp-001',
+            businessType: "wellness",
+            businessName: "Serenity Wellness Center",
+            customerId: 'demo-wellness',
             theme: {
                 primaryColor: '#f97316',
                 textColor: '#FFFFFF'
