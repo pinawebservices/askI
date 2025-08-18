@@ -6,11 +6,6 @@ import { supabase } from '@/lib/supabase';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
-// Add a global counter to track renders
-let renderCount = 0;
-let effectRunCount = 0;
-let queryCount = 0;
-
 interface ClientInstructions {
     id?: string;
     client_id: string;
@@ -28,23 +23,17 @@ interface ClientInstructions {
 }
 
 export default function InstructionsPage() {
-    // Track renders
-    renderCount++;
-    console.log(`🔄 RENDER #${renderCount} at ${new Date().toISOString()}`);
-
     const params = useParams();
     const clientId = params.clientId as string;
     const router = useRouter();
 
-    // Use a ref to absolutely prevent multiple fetches
+    // Use a ref to prevent multiple fetches
     const hasFetchedRef = useRef(false);
-    const abortControllerRef = useRef<AbortController | null>(null);
-
-    console.log(`📋 Component state: clientId=${clientId}, hasFetched=${hasFetchedRef.current}`);
 
     const [instructions, setInstructions] = useState<ClientInstructions>({
         client_id: clientId,
         business_name: '',
+        business_type: '',
         tone_style: 'friendly',
         communication_style: 'conversational',
         formality_level: 'professional',
@@ -58,105 +47,42 @@ export default function InstructionsPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Debug state changes
     useEffect(() => {
-        console.log('📊 State changed:', {
-            loading,
-            error,
-            hasInstructions: !!instructions.id,
-            businessName: instructions.business_name
-        });
-    }, [loading, error, instructions]);
-
-    useEffect(() => {
-        effectRunCount++;
-        console.log(`🎯 EFFECT RUN #${effectRunCount} - hasFetched: ${hasFetchedRef.current}, clientId: ${clientId}`);
-
-        // Absolute guard against multiple fetches
-        if (hasFetchedRef.current) {
-            console.log('❌ Skipping fetch - already fetched');
-            return;
-        }
-
-        if (!clientId) {
-            console.log('❌ Skipping fetch - no clientId');
-            setLoading(false);
-            return;
-        }
-
-        // Cancel any in-flight requests
-        if (abortControllerRef.current) {
-            console.log('🛑 Aborting previous request');
-            abortControllerRef.current.abort();
-        }
-
-        // Create new abort controller
-        abortControllerRef.current = new AbortController();
-
-        // Mark as fetched IMMEDIATELY
+        // Prevent multiple fetches
+        if (hasFetchedRef.current || !clientId) return;
         hasFetchedRef.current = true;
-        console.log('✅ Marking as fetched and starting query');
-
-        const loadInstructions = async () => {
-            queryCount++;
-            const queryId = queryCount;
-            console.log(`🔍 QUERY #${queryId} START at ${new Date().toISOString()}`);
-
-            try {
-                const { data, error: fetchError } = await supabase
-                    .from('client_instructions')
-                    .select('*')
-                    .eq('client_id', clientId)
-                    .maybeSingle();
-
-                console.log(`📦 QUERY #${queryId} RESULT:`, {
-                    hasData: !!data,
-                    hasError: !!fetchError,
-                    errorCode: fetchError?.code
-                });
-
-                // Check if this request was aborted
-                if (abortControllerRef.current?.signal.aborted) {
-                    console.log(`⚠️ QUERY #${queryId} was aborted, ignoring results`);
-                    return;
-                }
-
-                if (fetchError && fetchError.code !== 'PGRST116') {
-                    console.error(`❌ QUERY #${queryId} ERROR:`, fetchError);
-                    setError(fetchError.message);
-                }
-
-                if (data) {
-                    console.log(`✅ QUERY #${queryId} SUCCESS - Setting data`);
-                    setInstructions(data);
-                } else {
-                    console.log(`ℹ️ QUERY #${queryId} - No existing data, using defaults`);
-                }
-            } catch (err: any) {
-                console.error(`💥 QUERY #${queryId} EXCEPTION:`, err);
-                if (!abortControllerRef.current?.signal.aborted) {
-                    setError(err?.message || 'Failed to load instructions');
-                }
-            } finally {
-                console.log(`🏁 QUERY #${queryId} COMPLETE`);
-                setLoading(false);
-            }
-        };
 
         loadInstructions();
+    }, []); // Empty dependency array - only run once
 
-        // Cleanup function
-        return () => {
-            console.log('🧹 Cleanup: Effect unmounting');
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-                abortControllerRef.current = null;
+    async function loadInstructions() {
+        try {
+            console.log('Loading instructions for:', clientId);
+
+            const { data, error: fetchError } = await supabase
+                .from('client_instructions')
+                .select('*')
+                .eq('client_id', clientId)
+                .maybeSingle();
+
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                console.error('Error fetching instructions:', fetchError);
+                setError(fetchError.message);
+            } else if (data) {
+                console.log('Found existing instructions:', data);
+                setInstructions(data);
+            } else {
+                console.log('No existing instructions, using defaults for:', clientId);
             }
-        };
-    }, []); // EMPTY DEPENDENCIES - only run once
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load instructions');
+        } finally {
+            setLoading(false);
+        }
+    }
 
-    const saveInstructions = async () => {
-        console.log('💾 Save clicked');
+    async function saveInstructions() {
         try {
             setSaving(true);
             setError(null);
@@ -173,9 +99,9 @@ export default function InstructionsPage() {
                 updated_at: new Date().toISOString()
             };
 
-            console.log('📤 Saving data:', dataToSave);
+            console.log('Saving instructions:', dataToSave);
 
-            const { data, error } = await supabase
+            const { data, error: saveError } = await supabase
                 .from('client_instructions')
                 .upsert(dataToSave, {
                     onConflict: 'client_id'
@@ -183,88 +109,83 @@ export default function InstructionsPage() {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (saveError) {
+                console.error('Save error:', saveError);
+                throw saveError;
+            }
 
-            console.log('✅ Save successful:', data);
+            console.log('Saved successfully:', data);
             if (data) {
                 setInstructions(data);
             }
 
             alert('Instructions saved successfully!');
-
-        } catch (err: any) {
-            console.error('❌ Save error:', err);
-            setError(err?.message || 'Failed to save');
+        } catch (err) {
+            console.error('Error saving:', err);
+            setError(err instanceof Error ? err.message : 'Failed to save instructions');
         } finally {
             setSaving(false);
         }
-    };
+    }
 
     const handleInputChange = (field: keyof ClientInstructions, value: string) => {
-        console.log(`✏️ Input change: ${field} = ${value}`);
         setInstructions(prev => ({
             ...prev,
             [field]: value
         }));
     };
 
-    // Show debug info in UI
+    // Show loading state with the spinner
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-lg mb-4">Loading instructions for {clientId}...</p>
-
-                    {/* Debug Info Panel */}
-                    <div className="mt-8 p-4 bg-gray-100 rounded-lg text-left max-w-md">
-                        <h3 className="font-bold mb-2">Debug Info:</h3>
-                        <div className="text-sm space-y-1">
-                            <p>Render Count: {renderCount}</p>
-                            <p>Effect Run Count: {effectRunCount}</p>
-                            <p>Query Count: {queryCount}</p>
-                            <p>Has Fetched: {hasFetchedRef.current ? 'Yes' : 'No'}</p>
-                            <p>Client ID: {clientId}</p>
-                        </div>
-                    </div>
+                    <p className="text-lg">Loading instructions for {clientId}...</p>
                 </div>
             </div>
         );
     }
 
-    // Main form (simplified for debugging)
+    // Show error state
+    if (error && !instructions.business_name) {
+        return (
+            <div className="max-w-4xl mx-auto p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    <h2 className="font-bold mb-2">Error Loading Instructions</h2>
+                    <p>{error}</p>
+                    <button
+                        onClick={loadInstructions}
+                        className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Main form
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            {/* Debug Banner */}
-            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded">
-                <p className="text-sm font-mono">
-                    Debug: Renders={renderCount} | Effects={effectRunCount} | Queries={queryCount} | ClientID={clientId}
+        <div className="max-w-4xl mx-auto">
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold mb-2">
+                    Chatbot Instructions
+                </h1>
+                <p className="text-gray-600">
+                    Configure how your chatbot responds to customers for <strong>{clientId}</strong>
                 </p>
             </div>
 
-            {/* Header */}
-            <div className="mb-6 flex items-center justify-between">
-                <Link
-                    href={`/dashboard/${clientId}`}
-                    className="text-blue-500 hover:text-blue-700"
-                >
-                    ← Back to Dashboard
-                </Link>
-                <span className="text-sm text-gray-500">Client ID: {clientId}</span>
-            </div>
-
-            {/* Main Card */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <h1 className="text-2xl font-bold mb-6">Chatbot Instructions</h1>
-
+            <div className="bg-white rounded-lg shadow p-6">
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
                         {error}
                     </div>
                 )}
 
-                <div className="space-y-4">
-                    {/* Just show essential fields for debugging */}
+                <div className="space-y-6">
+                    {/* Business Name */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Business Name *
@@ -273,26 +194,181 @@ export default function InstructionsPage() {
                             type="text"
                             value={instructions.business_name || ''}
                             onChange={(e) => handleInputChange('business_name', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter your business name"
+                            required
                         />
                     </div>
 
-                    <div className="flex gap-4 pt-4">
+                    {/* Business Type */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Business Type
+                        </label>
+                        <select
+                            value={instructions.business_type || ''}
+                            onChange={(e) => handleInputChange('business_type', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Select business type...</option>
+                            <option value="wellness_spa">Wellness Spa</option>
+                            <option value="chiropractor">Chiropractor</option>
+                            <option value="physical_therapy">Physical Therapy</option>
+                            <option value="massage_therapy">Massage Therapy</option>
+                            <option value="acupuncture">Acupuncture</option>
+                            <option value="cryotherapy">Cryotherapy Center</option>
+                            <option value="meditation">Meditation Studio</option>
+                            <option value="yoga">Yoga Studio</option>
+                            <option value="functional_medicine">Functional Medicine</option>
+                            <option value="other">Other Wellness Business</option>
+                        </select>
+                    </div>
+
+                    {/* Two Column Layout for Style Options */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Tone Style */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tone Style
+                            </label>
+                            <select
+                                value={instructions.tone_style || 'friendly'}
+                                onChange={(e) => handleInputChange('tone_style', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="friendly">Friendly</option>
+                                <option value="professional">Professional</option>
+                                <option value="casual">Casual</option>
+                                <option value="formal">Formal</option>
+                                <option value="warm and calming">Warm & Calming</option>
+                                <option value="enthusiastic">Enthusiastic</option>
+                            </select>
+                        </div>
+
+                        {/* Communication Style */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Communication Style
+                            </label>
+                            <select
+                                value={instructions.communication_style || 'conversational'}
+                                onChange={(e) => handleInputChange('communication_style', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="conversational">Conversational</option>
+                                <option value="concise">Concise</option>
+                                <option value="detailed">Detailed</option>
+                                <option value="supportive">Supportive</option>
+                                <option value="educational">Educational</option>
+                            </select>
+                        </div>
+
+                        {/* Formality Level */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Formality Level
+                            </label>
+                            <select
+                                value={instructions.formality_level || 'professional'}
+                                onChange={(e) => handleInputChange('formality_level', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="very formal">Very Formal</option>
+                                <option value="professional">Professional</option>
+                                <option value="semi-formal">Semi-Formal</option>
+                                <option value="casual">Casual</option>
+                                <option value="very_casual">Very Casual</option>
+                            </select>
+                        </div>
+
+                        {/* Response Time */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Expected Response Time
+                            </label>
+                            <select
+                                value={instructions.response_time || '2 hours'}
+                                onChange={(e) => handleInputChange('response_time', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="15 minutes">15 minutes</option>
+                                <option value="30 minutes">30 minutes</option>
+                                <option value="1 hour">1 hour</option>
+                                <option value="2 hours">2 hours</option>
+                                <option value="4 hours">4 hours</option>
+                                <option value="same day">Same day</option>
+                                <option value="24 hours">24 hours</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Special Instructions */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Special Instructions
+                            <span className="text-sm text-gray-500 ml-2">
+                                (Always mention, emphasize, or avoid)
+                            </span>
+                        </label>
+                        <textarea
+                            value={instructions.special_instructions || ''}
+                            onChange={(e) => handleInputChange('special_instructions', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Example: Always mention our new client discount of 20%. Emphasize our holistic approach to wellness. Never discuss specific medical diagnoses."
+                            rows={4}
+                        />
+                    </div>
+
+                    {/* Formatting Rules */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Response Formatting Rules
+                        </label>
+                        <textarea
+                            value={instructions.formatting_rules || ''}
+                            onChange={(e) => handleInputChange('formatting_rules', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Example: Keep initial responses to 2-3 sentences. Use bullet points for service lists. Include emojis sparingly for friendliness."
+                            rows={3}
+                        />
+                    </div>
+
+                    {/* Lead Capture Process */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Lead Capture Process
+                        </label>
+                        <textarea
+                            value={instructions.lead_capture_process || ''}
+                            onChange={(e) => handleInputChange('lead_capture_process', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Example: After answering their initial question, ask if they'd like to schedule a consultation. Collect name, email, and phone number. Mention that someone will reach out within 2 hours."
+                            rows={3}
+                        />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 pt-6 border-t">
                         <button
                             onClick={saveInstructions}
                             disabled={saving || !instructions.business_name}
-                            className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+                            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {saving ? 'Saving...' : 'Save Instructions'}
                         </button>
 
                         <button
                             onClick={() => router.push(`/dashboard/${clientId}`)}
-                            className="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400"
+                            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 transition-colors"
                         >
                             Cancel
                         </button>
+
+                        {instructions.id && (
+                            <span className="ml-auto text-sm text-gray-500 self-center">
+                                Last updated: {instructions.updated_at ? new Date(instructions.updated_at).toLocaleDateString() : 'Never'}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
