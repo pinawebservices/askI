@@ -1,82 +1,66 @@
-// app/api/chat/route.js (or wherever your chat endpoint is)
-// This connects your widget to Pinecone
-
+// app/api/chat/route.js - Enhanced with Supabase
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
-
-// Initialize clients (do this once)
-let pinecone;
-let openai;
-let index;
-
-async function initializeClients() {
-    if (!pinecone) {
-        pinecone = new Pinecone({
-            apiKey: process.env.PINECONE_API_KEY
-        });
-        index = pinecone.index('chatbot-knowledge');
-    }
-
-    if (!openai) {
-        openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
-    }
-
-    return { pinecone, openai, index };
-}
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function POST(request) {
     try {
         const { messages, clientId = 'demo-wellness' } = await request.json();
+        const userMessage = messages[messages.length - 1].content;
 
-        // Initialize clients
-        const { index, openai } = await initializeClients();
+        // 1. Get client instructions from Supabase
+        const { data: instructions, error: instructionsError } = await supabaseAdmin
+            .from('client_instructions')
+            .select('*')
+            .eq('client_id', clientId)
+            .single();
 
-        // Get the user's question (last message)
-        const userQuestion = messages[messages.length - 1].content;
-        console.log(`📝 Question from ${clientId}: ${userQuestion}`);
+        if (instructionsError) {
+            console.log('No custom instructions found, using defaults');
+        }
 
-        // Get the namespace for this client
+        // 2. Initialize Pinecone and OpenAI
+        const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const index = pinecone.index('chatbot-knowledge');
         const namespace = index.namespace(clientId);
 
-        // Create embedding for the question
-        console.log('🔍 Creating embedding for question...');
-        const questionEmbedding = await openai.embeddings.create({
+        // 3. Search Pinecone for relevant content
+        const embedding = await openai.embeddings.create({
             model: 'text-embedding-3-small',
-            input: userQuestion
+            input: userMessage
         });
 
-        // Search Pinecone for relevant chunks
-        console.log('🔎 Searching for relevant information...');
         const searchResults = await namespace.query({
-            vector: questionEmbedding.data[0].embedding,
-            topK: 5, // Get top 5 most relevant chunks
+            vector: embedding.data[0].embedding,
+            topK: 5,
             includeMetadata: true
         });
 
-        // Extract the text from results
         const relevantContext = searchResults.matches
             .map(match => match.metadata.text)
-            .join('\n\n---\n\n');
+            .join('\n\n');
 
-        console.log(`✅ Found ${searchResults.matches.length} relevant chunks`);
-        console.log(`📊 Context size: ${relevantContext.length} characters (was 750K before!)`);
+        // 4. Build enhanced prompt with instructions
+        const systemPrompt = `You are a customer service assistant for ${instructions?.business_name || 'the business'}.
 
-        // Create the system prompt with ONLY relevant context
-        const systemPrompt = `You are a helpful and professional customer service assistant for Serenity Wellness Center.
-
-Here is relevant information to answer the user's question:
-
+RELEVANT INFORMATION:
 ${relevantContext}
 
-Instructions:
-- Answer based ONLY on the information provided above
-- Be friendly, professional, and helpful
-- If the information doesn't contain the answer, politely say you don't have that information
-- Keep responses concise and clear`;
+${instructions?.special_instructions ? `SPECIAL INSTRUCTIONS:
+${instructions.special_instructions}` : ''}
 
-        // Get response from OpenAI with the relevant context
+${instructions?.tone_style ? `TONE: Be ${instructions.tone_style} and professional.` : ''}
+
+${instructions?.formatting_rules ? `FORMATTING:
+${instructions.formatting_rules}` : ''}
+
+${instructions?.lead_capture_process ? `FOR BOOKINGS:
+${instructions.lead_capture_process}` : ''}
+
+Answer based on the information provided. Be helpful and professional.`;
+
+        // 5. Generate response
         const completion = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages: [
@@ -84,32 +68,29 @@ Instructions:
                 ...messages
             ],
             temperature: 0.7,
-            max_tokens: 300
+            max_tokens: 400
         });
 
-        // Return the response
+        // 6. Log conversation to Supabase for analytics
+        await supabaseAdmin.from('chat_conversations').insert({
+            client_id: clientId,
+            conversation_id: `conv_${Date.now()}`,
+            user_message: userMessage,
+            bot_response: completion.choices[0].message.content,
+            chunks_used: searchResults.matches.length,
+            tokens_used: completion.usage?.total_tokens || 0
+        });
+
         return Response.json({
             message: completion.choices[0].message.content,
             debug: {
-                chunksUsed: searchResults.matches.length,
-                topScore: searchResults.matches[0]?.score || 0,
-                contextSize: relevantContext.length
+                hasCustomInstructions: !!instructions,
+                chunksUsed: searchResults.matches.length
             }
         });
 
     } catch (error) {
-        console.error('❌ Chat API error:', error);
-        return Response.json(
-            { error: 'Failed to process chat request', details: error.message },
-            { status: 500 }
-        );
+        console.error('Chat error:', error);
+        return Response.json({ error: 'Failed to process' }, { status: 500 });
     }
-}
-
-// Optional: Add a test endpoint
-export async function GET(request) {
-    return Response.json({
-        status: 'Chat API with Pinecone is running',
-        instructions: 'Send POST request with { messages: [...], clientId: "demo-wellness" }'
-    });
 }
