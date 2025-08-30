@@ -58,7 +58,20 @@ export default function ChatWidget({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const [clientId, setClientId] = useState('demo-wellness');
-  const [conversationId, setConversationId] = useState(null);
+  const [conversationId, setConversationId] = useState(() => {
+    // Check if existing conversation in session
+    let convId = sessionStorage.getItem('conversationId');
+
+    if (!convId) {
+      convId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('conversationId', convId);
+      console.log('🆕 Initial conversation ID created:', convId);
+    } else {
+      console.log('♻️ Restored conversation ID from session:', convId);
+    }
+
+    return convId;
+  });
 
   // Generate conversation ID once when widget loads
   useEffect(() => {
@@ -69,20 +82,12 @@ export default function ChatWidget({
     }
 
     // Check if existing conversation in session
-    let convId = sessionStorage.getItem('conversationId');
     const savedMessages = sessionStorage.getItem('chatMessages');
 
-    if (convId && savedMessages) {
-      setConversationId(convId);
+    if (conversationId && savedMessages) {
       setMessages(JSON.parse(savedMessages));
-    } else {
-      convId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('conversationId', convId);
-      setConversationId(convId);
     }
-
-    setConversationId(convId);
-  }, []);
+  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,6 +105,17 @@ export default function ChatWidget({
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    // Generate conversation ID if it doesn't exist yet
+    let convId = conversationId;
+    if (!convId) {
+      convId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('conversationId', convId);
+      setConversationId(convId);
+      console.log('📝 Generated new conversation ID:', convId);
+    } else {
+      console.log('📝 Using existing conversation ID:', convId);
+    }
+
     const userMessage = {
       role: "user",
       content: input.trim(),
@@ -111,34 +127,46 @@ export default function ChatWidget({
     setInput("");
     setIsLoading(true);
 
+    // Log what we're sending
+    const requestBody = {
+      messages: newMessages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      businessType,
+      customDetails,
+      clientId: clientId,
+      conversationId: convId  // ← FIX: Use convId here, not conversationId
+    };
+
+    console.log('📤 Sending request with:', {
+      clientId: requestBody.clientId,
+      conversationId: requestBody.conversationId,
+      messageCount: requestBody.messages.length
+    });
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          messages: newMessages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          businessType,
-          customDetails,
-          clientId: clientId,
-          conversationId: conversationId
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log('📥 Response status:', response.status);
 
       if (!response.ok) {
         throw new Error("Failed to send message");
       }
 
       const data = await response.json();
+      console.log('📥 Response data:', data);
 
       if (data.error) {
         throw new Error(data.error);
       }
-
+      console.error("❌ Error sending message:", error);
       setMessages([
         ...newMessages,
         {

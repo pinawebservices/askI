@@ -3,17 +3,18 @@
   console.log("🚀 Embed script starting...");
 
   // Configuration
-  const config = window.aiChatbotConfig || {
-    apiUrl: "http://localhost:3000",
-    businessType: "wellness",  // Update default
-    businessName: "Serenity Wellness Center",  // Update default
-    customDetails: "",
-    clientId: "demo-wellness",  // ADD THIS LINE
-    theme: {
-      primaryColor: "#2563EB",
-      textColor: "#FFFFFF",
-    },
-  };
+  const config = window.aiChatbotConfig
+  //     || {
+  //   apiUrl: "http://localhost:3000",
+  //   businessType: "wellness",  // Update default
+  //   businessName: "Serenity Wellness Center",  // Update default
+  //   customDetails: "",
+  //   clientId: "demo-wellness",  // ADD THIS LINE
+  //   theme: {
+  //     primaryColor: "#2563EB",
+  //     textColor: "#FFFFFF",
+  //   },
+  // };
 
   // Check if widget already loaded
   if (window.aiChatbotLoaded) return;
@@ -279,21 +280,37 @@
   }
 
   // Send message
-  async function sendMessage(text) {
-    if (!text.trim()) return;
+  async function sendMessage(message) {
 
-    console.log("📤 Sending message:", text);
+    // Generate or retrieve conversation ID
+    let conversationId = sessionStorage.getItem('embed_conversationId');
+    if (!conversationId) {
+      conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('embed_conversationId', conversationId);
+      console.log('📝 [Embed] Created new conversation ID:', conversationId);
+    } else {
+      console.log('📝 [Embed] Using existing conversation ID:', conversationId);
+    }
+
+    // Prepare the message
+    const userMessage = {
+      role: "user",
+      content: message,
+      timestamp: new Date(),
+    };
 
     // Add user message
-    messages.push({
-      role: "user",
-      content: text,
-      timestamp: new Date(),
-    });
+    messages.push(userMessage);
     renderMessages();
 
     // Show typing indicator
     showTypingIndicator();
+
+    console.log('📤 [Embed] Sending to API:', {
+      clientId: config.clientId,
+      conversationId: conversationId,
+      messageCount: messages.length
+    });
 
     try {
       const response = await fetch(`${config.apiUrl}/api/chat`, {
@@ -308,23 +325,29 @@
           })),
           businessType: config.businessType,
           customDetails: config.customDetails,
-          customerId: config.customerId,
-          // ADD THIS LINE FOR PINECONE:
-          clientId: 'demo-wellness'  // This tells Pinecone which namespace to use
+          clientId: config.clientId,  // This also tells Pinecone which namespace to use
+          conversationId: conversationId
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(" ❌ Failed to send message");
+      }
+
       const data = await response.json();
+      console.log('📥 [Embed] Response received:', data);
 
       // Remove typing indicator
       hideTypingIndicator();
 
-      if (data.message) {
-        messages.push({
-          role: "assistant",
-          content: data.message,
-          timestamp: new Date(),
-        });
+      const assistantMessage = {
+        role: "assistant",
+        content: data.message,
+        timestamp: new Date(),
+      };
+
+      if (assistantMessage) {
+        messages.push(assistantMessage);
         renderMessages();
         console.log("✅ Response received");
 

@@ -11,7 +11,7 @@ declare global {
             businessType: string;
             businessName: string;
             customDetails?: string;
-            customerId: string;
+            clientId: string;
             theme: {
                 primaryColor: string;
                 textColor: string;
@@ -27,7 +27,7 @@ export default function ChatbotProvider() {
             apiUrl: 'https://aski-chatbot.vercel.app',
             businessType: "wellness",
             businessName: "Serenity Wellness Center",
-            customerId: 'demo-wellness',
+            clientId: 'demo-wellness',
             theme: {
                 primaryColor: '#f97316',
                 textColor: '#FFFFFF'
