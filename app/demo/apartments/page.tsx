@@ -216,7 +216,7 @@ export default function ApartmentsPage(): React.JSX.Element {
                             apiUrl: "http://localhost:3000",
                             businessType: "wellness", 
                             businessName: "Serenity Wellness Center",
-                            customerId: "demo-wellness",
+                            clientId: "demo-wellness",
                             theme: {
                                 primaryColor: "#1E88E5",
                                 textColor: "#FFFFFF"
