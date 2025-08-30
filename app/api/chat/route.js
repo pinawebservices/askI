@@ -3,7 +3,8 @@ import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import validator from 'validator';
-import { isPersonName } from 'people-names';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
 
 // Add this near the top of your route.js file
 const conversationStates = new Map(); // Store state per conversation
@@ -407,15 +408,11 @@ function extractName(currentMessage, conversationHistory) {
 
         // Check if bot specifically asked for name
         const nameQuestions = [
-            'what is your name',
-            "what's your name",
-            'may i have your name',
-            'can i get your name',
+            'your name',
+            "your full name",
             'who am i speaking with',
             'may i ask who',
-            'can i ask your name',
-            'mind if i get your name',
-            'could you tell me your name'
+            'how may i call you'
         ];
 
         if (lastBotMessage?.role === 'assistant') {
@@ -445,33 +442,20 @@ function extractName(currentMessage, conversationHistory) {
                 const potentialName = match[1].trim();
                 // FIXME: This is a temporary fix to get the name extraction working
                 console.log('  Found declaration pattern:', potentialName);
-
-                // Validate with people-names library
-                const isValid = isPersonName(potentialName);
-                // FIXME: This is a temporary fix to get the name extraction working
-                console.log('  Is valid name?', isValid);
-
-                if (isValid) {
-                    // FIXME: This is a temporary fix to get the name extraction working
-                    console.log('  ✅ Name validated:', potentialName);
-                    return potentialName;
-                }
+                return potentialName;
             }
         }
 
         // If message is short and could be just a name, validate it
         if (currentMessage.split(' ').length <= 3) {
             const potentialName = currentMessage.trim();
-            const isValid = isPersonName(potentialName);
-            console.log('  Short message validation:', potentialName, 'Valid?', isValid);
-            if (isValid) {
-                // But only accept if there's context suggesting name was requested
-                const recentMessages = conversationHistory.slice(-4).map(m => m.content.toLowerCase()).join(' ');
-                const hasNameContext = recentMessages.includes('name');
-                if (hasNameContext) {
-                    console.log('  ✅ Name accepted from short message:', potentialName);
-                    return potentialName;
-                }
+            console.log('  Short message validation:', potentialName);
+            // But only accept if there's context suggesting name was requested
+            const recentMessages = conversationHistory.slice(-4).map(m => m.content.toLowerCase()).join(' ');
+            const hasNameContext = recentMessages.includes('name');
+            if (hasNameContext) {
+                console.log('  ✅ Name accepted from short message:', potentialName);
+                return potentialName;
             }
         }
 
@@ -631,14 +615,7 @@ function parseNameFromResponse(response) {
         if (match && match[1]) {
             const potentialName = match[1].trim();
             console.log(`  [PARSE NAME] Matched "${name}":`, potentialName);
-
-            // Use isPersonName to validate
-            const isValid = isPersonName(potentialName);
-            console.log(`  [PARSE NAME] isPersonName("${potentialName}") =`, isValid);
-            if (isValid) {
-                console.log('  [PARSE NAME] ✅ Valid name found:', potentialName);
-                return potentialName;
-            }
+            return potentialName;
         }
     }
 
