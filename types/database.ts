@@ -44,3 +44,18 @@ export interface ChatConversation {
     response_time_ms?: number;
     created_at: string;
 }
+
+export interface CapturedLead {
+    id: string;
+    client_id: string;
+    conversation_id: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    inquiry_type?: string;
+    custom_fields?: Record<string, any>;
+    lead_score?: number;
+    captured_at: string;
+    notification_sent: boolean;
+}

@@ -57,12 +57,42 @@ export default function ChatWidget({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const [clientId, setClientId] = useState('demo-wellness');
+  const [conversationId, setConversationId] = useState(null);
+
+  // Generate conversation ID once when widget loads
+  useEffect(() => {
+    // Get ClientId from Windows Config
+    const configClientId = window.chatWidgetConfig?.clientId;
+    if (configClientId) {
+      setClientId(configClientId);
+    }
+
+    // Check if existing conversation in session
+    let convId = sessionStorage.getItem('conversationId');
+    const savedMessages = sessionStorage.getItem('chatMessages');
+
+    if (convId && savedMessages) {
+      setConversationId(convId);
+      setMessages(JSON.parse(savedMessages));
+    } else {
+      convId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('conversationId', convId);
+      setConversationId(convId);
+    }
+
+    setConversationId(convId);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+
     scrollToBottom();
   }, [messages]);
 
@@ -94,6 +124,8 @@ export default function ChatWidget({
           })),
           businessType,
           customDetails,
+          clientId: clientId,
+          conversationId: conversationId
         }),
       });
 
