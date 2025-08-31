@@ -282,7 +282,9 @@
   // Send message
   async function sendMessage(message) {
 
-    // Generate or retrieve conversation ID
+    // // Always create new conversation ID
+    // let conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Retrieve Existing or Generate new conversation ID
     let conversationId = sessionStorage.getItem('embed_conversationId');
     if (!conversationId) {
       conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

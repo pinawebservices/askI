@@ -14,19 +14,20 @@ const LeadCaptureStage = {
     IDLE: 'idle',                           // No capture in progress
 
     // Offer and acceptance
-    OFFER_MADE: 'offer_made',               // Bot offered to collect contact info
-    ACCEPTED_OFFER: 'accepted_offer',       // User said yes to being contacted
+    CAPTURE_INITIALIZED: 'capture_initialized',               // Lead capture initialized
+    ACCEPTED_OFFER: 'accepted_offer',
+    // ACCEPTED_OFFER_ASSUMED: 'accepted_offer_assumed', // User said yes to being contacted
     DECLINED_OFFER: 'declined_offer',       // User said no to being contacted
 
-    // Collection stages
-    COLLECTING_NAME: 'collecting_name',     // Waiting for name input
-    NAME_COLLECTED: 'name_collected',       // Name captured, ready for phone
-
-    COLLECTING_PHONE: 'collecting_phone',   // Waiting for phone input
-    PHONE_COLLECTED: 'phone_collected',     // Phone captured, ready for email
-
-    COLLECTING_EMAIL: 'collecting_email',   // Waiting for email input
-    EMAIL_COLLECTED: 'email_collected',     // Email captured, ready to confirm
+    // // Collection stages
+    // COLLECTING_NAME: 'collecting_name',     // Waiting for name input
+    // NAME_COLLECTED: 'name_collected',       // Name captured, ready for phone
+    //
+    // COLLECTING_PHONE: 'collecting_phone',   // Waiting for phone input
+    // PHONE_COLLECTED: 'phone_collected',     // Phone captured, ready for email
+    //
+    // COLLECTING_EMAIL: 'collecting_email',   // Waiting for email input
+    // EMAIL_COLLECTED: 'email_collected',     // Email captured, ready to confirm
 
     // Confirmation stages
     CONFIRMING: 'confirming',               // Waiting for user to confirm info
@@ -36,10 +37,11 @@ const LeadCaptureStage = {
     COMPLETE: 'complete',                   // Lead captured successfully
     ABANDONED: 'abandoned'                  // User abandoned the flow
 };
+
 // For easier debugging
 const StageDescriptions = {
     [LeadCaptureStage.IDLE]: 'No lead capture in progress',
-    [LeadCaptureStage.OFFER_MADE]: 'Bot offered to collect contact info',
+    [LeadCaptureStage.CAPTURE_INITIALIZED]: 'Bot offered to collect contact info',
     [LeadCaptureStage.ACCEPTED_OFFER]: 'User agreed to provide contact info',
     [LeadCaptureStage.DECLINED_OFFER]: 'User declined to provide contact info',
     [LeadCaptureStage.COLLECTING_NAME]: 'Waiting for user to provide name',
@@ -81,8 +83,41 @@ function updateLeadCapture(currentMessage, conversationHistory, conversationId) 
     const lastBotMessage = conversationHistory[conversationHistory.length - 2]?.content?.toLowerCase() || '';
 
     console.log(`📊 Lead Capture State: ${state.stage}`);
+    console.log(`Last bot message: ${lastBotMessage}`);
+    console.log(`Current message: ${currentMessage}`);
 
     switch (state.stage) {
+        case LeadCaptureStage.IDLE:
+            // Check if bot just offered to help with contact/booking
+            const botOffersCapture =
+                (lastBotMessage.includes('would you like') &&
+                    (lastBotMessage.includes('schedule') ||
+                        lastBotMessage.includes('scheduling') ||
+                        lastBotMessage.includes('book') ||
+                        lastBotMessage.includes('booking') ||
+                        lastBotMessage.includes('appointment') ||
+                        lastBotMessage.includes('contact'))) ||
+                lastBotMessage.includes('can i get your') ||
+                lastBotMessage.includes('may i have your');
+
+            if (botOffersCapture) {
+                console.log('🎯 Bot offered contact collection');
+                transitionStage(state, LeadCaptureStage.CAPTURE_INITIALIZED, 'Bot offered contact');
+
+                // Check if user just accepted
+                const userMessageLower = currentMessage.toLowerCase().trim();
+                const positiveResponses = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely'];
+                const negativeResponses = ['no', 'nope', 'not', 'nah', 'maybe later', 'not now'];
+
+                if (positiveResponses.some(resp => userMessageLower.includes(resp))) {
+                    console.log('✅ User accepted offer');
+                    transitionStage(state, LeadCaptureStage.ACCEPTED_OFFER, 'User accepted offer');
+                } else if (negativeResponses.some(resp => userMessageLower.includes(resp))) {
+                    console.log('❌ User declined to provide contact info');
+                    transitionStage(state, LeadCaptureStage.DECLINED_OFFER, 'User declined offer');
+                }
+            }
+            break;
         case LeadCaptureStage.ACCEPTED_OFFER:
             // User accepted, bot should ask for name next
             if (lastBotMessage.includes('name')) {
@@ -94,7 +129,7 @@ function updateLeadCapture(currentMessage, conversationHistory, conversationId) 
             const name = parseNameFromResponse(currentMessage);
             if (name) {
                 state.tempLead.name = name;
-                transitionStage(state, LeadCaptureStage.NAME_COLLECTED, `Name captured: ${name}`);
+                // transitionStage(state, LeadCaptureStage.NAME_COLLECTED, `Name captured: ${name}`);
             }
             break;
 
@@ -168,8 +203,15 @@ function updateLeadCapture(currentMessage, conversationHistory, conversationId) 
 
 export async function POST(request) {
     try {
-        const { messages, clientId = 'demo-wellness', conversationId } = await request.json();
+        const {messages, clientId = 'demo-wellness', conversationId} = await request.json();
         const userMessage = messages[messages.length - 1].content;
+        const leadState = getLeadCaptureState(conversationId);
+
+        // New Conversations reset lead stage
+        if (messages.length <= 2) {
+            leadState.stage = LeadCaptureStage.IDLE;
+            console.log('New conversation, resetting lead stage to IDLE');
+        }
 
         // Require conversation ID from frontend
         let convId;
@@ -183,7 +225,7 @@ export async function POST(request) {
         }
 
         // 1. Get client instructions from Supabase
-        const { data: instructions, error: instructionsError } = await supabaseAdmin
+        const {data: instructions, error: instructionsError} = await supabaseAdmin
             .from('client_instructions')
             .select('*')
             .eq('client_id', clientId)
@@ -194,8 +236,8 @@ export async function POST(request) {
         }
 
         // 2. Initialize Pinecone and OpenAI
-        const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const pinecone = new Pinecone({apiKey: process.env.PINECONE_API_KEY});
+        const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
         const index = pinecone.index('chatbot-knowledge');
         const namespace = index.namespace(clientId);
 
@@ -263,35 +305,209 @@ export async function POST(request) {
             model: 'gpt-4.1-nano' +
                 '',
             messages: [
-                { role: 'system', content: systemPrompt },
+                {role: 'system', content: systemPrompt},
                 ...messages
             ],
             temperature: 0.7,
             max_tokens: 400
         });
 
+        const currentAgentMessage = completion.choices[0].message.content.toLowerCase() || '';
+
+        // FIXME - NEED A BETTER WAY TO DO THIS -- Perhaps a entering some sort of lead collecting mode.. because these lead triggers with ever message sent don't seem like the best approach
         // 6. Check if response contains lead capture trigger
-        const leadTriggers = [
-            'email', 'phone', 'name','contact', 'book', 'schedule',
-            'appointment', 'quote', 'call'
+        const leadCaptureStartTriggers = [
+            'contact', 'book', 'schedule',
+            'appointment', 'quote', 'call', 'booking', 'scheduling',
+
         ];
 
-        const shouldCaptureInfo = leadTriggers.some(trigger =>
-            userMessage.toLowerCase().includes(trigger) ||
-            completion.choices[0].message.content.toLowerCase().includes(trigger) // <-- If we wanted to use the AI's response to determine if we should capture info
-        );
+        const leadCaptureOfferedAndAcceptedTriggers = [
+            'your name', 'your full name'
+            ];
+
+        const captureAndUpdateLeadName = () => {
+            const name = parseNameFromResponse(userMessage);
+            if (name) {
+                leadState.tempLead.name = name;
+                console.log(`👤 Updated Lead State Name`)
+            }
+        }
+
+        const captureAndUpdateLeadPhone = () => {
+            const phone = extractPhone(userMessage);
+            if (phone) {
+                leadState.tempLead.phone = phone;
+                console.log(`☎️ Updated Lead State Phone`)
+            }
+        }
+
+        const captureAndUpdateLeadEmail = () => {
+            const email = extractEmail(userMessage);
+            if (email) {
+                leadState.tempLead.email = email;
+                console.log(`📧 Updated Lead State Email`)
+            }
+        }
+
+        const captureLeadInfo = () => {
+            const lastAgentMessagePriorToUser = messages[messages.length - 2]?.content?.toLowerCase() || '';
+            console.log(' Last agent message prior to user\'s: ', lastAgentMessagePriorToUser);
+            if (lastAgentMessagePriorToUser.includes('name')) {
+                captureAndUpdateLeadName();
+            } else if (lastAgentMessagePriorToUser.includes('phone')) {
+                captureAndUpdateLeadPhone();
+            } else if (lastAgentMessagePriorToUser.includes('email')) {
+                captureAndUpdateLeadEmail();
+            }
+            if (leadState.tempLead.name && leadState.tempLead.phone && leadState.tempLead.email) {
+                transitionStage(leadState, LeadCaptureStage.CONFIRMING, 'Confirming captured lead info');
+            }
+        }
 
         // 7. Extract and save lead information if detected
-        if (shouldCaptureInfo) {
-            console.log('🎯 [LEAD CAPTURE] Trigger detected, checking conversation state...');
+        switch (leadState.stage) {
+            case LeadCaptureStage.IDLE:
+                const lastAgentMessagePriorToUserIdle = messages[messages.length - 2]?.content?.toLowerCase() || '';
+                console.log("CAPTURE IDLE STATE:")
+                console.log(' messages length:', messages.length)
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+                console.log(' Last agent message prior to user: ', lastAgentMessagePriorToUserIdle);
+                const shouldInitializeLeadState = leadCaptureStartTriggers.some(trigger =>
+                    userMessage.toLowerCase().includes(trigger) ||
+                    currentAgentMessage.includes(trigger) // <-- If we wanted to use the AI's response to determine if we should capture info
+                );
 
-            const confirmedLead = updateLeadCapture(userMessage, messages, convId);
+                const leadCaptureOfferedAndAccepted = leadCaptureOfferedAndAcceptedTriggers.some(trigger =>
+                    //userMessage.toLowerCase().includes(trigger) ||
+                    currentAgentMessage.includes(trigger)
+                );
 
-            const leadInfo = extractLeadInfo(userMessage, messages);
-            if (leadInfo.email || leadInfo.phone || leadInfo.name) {
-                leadInfo.score = null; //calculateLeadScore(leadInfo, userMessage);
-                await captureAndNotifyLead(leadInfo, clientId, convId);
-            }
+                if (leadCaptureOfferedAndAccepted) {
+                    console.log('🎯 [LEAD Capture Offered And Accepted] Trigger detected');
+                    transitionStage(leadState, LeadCaptureStage.ACCEPTED_OFFER, 'User accepted offer assumed');
+                } else if (shouldInitializeLeadState) {
+                    console.log('🎯 [LEAD CAPTURE Initialize] Trigger detected');
+                    transitionStage(leadState, LeadCaptureStage.CAPTURE_INITIALIZED,'lead capture trigger detected');
+                }
+                break;
+            case LeadCaptureStage.CAPTURE_INITIALIZED:
+                const lastAgentMessagePriorToUserInitialized = messages[messages.length - 2]?.content?.toLowerCase() || '';
+                console.log("CAPTURE INITIALIZED STATE:")
+                console.log(' messages length:', messages.length)
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+                console.log(' Last agent message prior to user: ', lastAgentMessagePriorToUserInitialized);
+                const botOfferedCapture =
+                        (currentAgentMessage.includes('schedule') ||
+                            currentAgentMessage.includes('scheduling') ||
+                            currentAgentMessage.includes('book') ||
+                            currentAgentMessage.includes('booking') ||
+                            currentAgentMessage.includes('appointment') ||
+                            currentAgentMessage.includes('contact')) ||
+                    currentAgentMessage.includes('can i get your') ||
+                    currentAgentMessage.includes('may i have your');
+
+                if (botOfferedCapture){
+                // Check if user just accepted
+                const userMessageLower = userMessage.toLowerCase().trim();
+                const positiveResponses = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely','love'];
+                const negativeResponses = ['no', 'nope', 'not', 'nah', 'maybe later', 'not now'];
+
+                if (positiveResponses.some(resp => userMessageLower.includes(resp))) {
+                    console.log('✅ User accepted offer');
+                    transitionStage(leadState, LeadCaptureStage.ACCEPTED_OFFER, 'User accepted offer');
+                } else if (negativeResponses.some(resp => userMessageLower.includes(resp))) {
+                    console.log('❌ User declined to provide contact info');
+                    transitionStage(leadState, LeadCaptureStage.DECLINED_OFFER, 'User declined offer');
+                }
+                }
+                break;
+            case LeadCaptureStage.ACCEPTED_OFFER:
+                console.log("ACCEPTED OFFER STATE:")
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+                captureLeadInfo();
+                break;
+            // case LeadCaptureStage.ACCEPTED_OFFER_ASSUMED:
+            //     console.log("ACCEPTED OFFER ASSUMED STATE:")
+            //     console.log(' Current agent message: ', currentAgentMessage);
+            //     console.log(' Last user message: ', userMessage);
+            //     captureLeadInfo();
+            //     break;
+            case LeadCaptureStage.CONFIRMING:
+                const lastAgentMessagePriorToUserConfirming = messages[messages.length - 2]?.content?.toLowerCase() || '';
+                console.log("CONFIRMING OFFER STATE:")
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+                console.log(' Last agent message prior to user\'s: ', lastAgentMessagePriorToUserConfirming);
+                if (lastAgentMessagePriorToUserConfirming.includes('is this information correct') ||
+                    lastAgentMessagePriorToUserConfirming.includes('confirm')) {
+                    const positive = ['yes', 'yep', 'correct', 'right', 'perfect', 'yea'];
+                    const negative = ['no', 'wrong', 'incorrect', 'change','that\'s not','thats not'];
+
+                    if (positive.some(word => userMessage.toLowerCase().includes(word))) {
+                        transitionStage(leadState, LeadCaptureStage.COMPLETE, 'User confirmed info');
+                        console.log('💾 Saving confirmed lead to database:', leadState.tempLead);
+                        const leadInfo = {
+                            ...leadState.tempLead,
+                            score: null,
+                            timestamp: new Date().toISOString(),
+                            conversation: messages
+                        };
+                        await captureAndNotifyLead(leadInfo, clientId, convId);
+                    }
+
+                    if (negative.some(word => userMessage.toLowerCase().includes(word))) {
+                        transitionStage(leadState, LeadCaptureStage.AWAITING_CORRECTION, 'User wants corrections');
+                    }
+                }
+                break;
+            case LeadCaptureStage.AWAITING_CORRECTION:
+                const lastAgentMessagePriorToUserAwaiting = messages[messages.length - 2]?.content?.toLowerCase() || '';
+                console.log("AWAITING CORRECTION STATE:")
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+                console.log(' Last agent message prior to user\'s: ', lastAgentMessagePriorToUserAwaiting);
+                // Handle corrections based on what user wants to fix
+                if (lastAgentMessagePriorToUserAwaiting.includes('name')) {
+                    captureAndUpdateLeadName()
+                    transitionStage(leadState, LeadCaptureStage.COMPLETE, 'User confirmed info');
+                    console.log('💾 Saving lead with corrected name to database:', leadState.tempLead);
+                    const leadInfo = {
+                        ...leadState.tempLead,
+                        score: null,
+                        timestamp: new Date().toISOString(),
+                        conversation: messages
+                    };
+                    await captureAndNotifyLead(leadInfo, clientId, convId);
+                } else if (lastAgentMessagePriorToUserAwaiting.includes('phone')) {
+                    captureAndUpdateLeadPhone()
+                    transitionStage(leadState, LeadCaptureStage.COMPLETE, 'User confirmed info');
+                    console.log('💾 Saving lead with corrected phone to database:', leadState.tempLead);
+                    const leadInfo = {
+                        ...leadState.tempLead,
+                        score: null,
+                        timestamp: new Date().toISOString(),
+                        conversation: messages
+                    };
+                    await captureAndNotifyLead(leadInfo, clientId, convId);
+                } else if (lastAgentMessagePriorToUserAwaiting.includes('email')) {
+                    captureAndUpdateLeadEmail()
+                    transitionStage(leadState, LeadCaptureStage.COMPLETE, 'User confirmed info');
+                    console.log('💾 Saving lead with corrected email to database:', leadState.tempLead);
+                    const leadInfo = {
+                        ...leadState.tempLead,
+                        score: null,
+                        timestamp: new Date().toISOString(),
+                        conversation: messages
+                    };
+                    await captureAndNotifyLead(leadInfo, clientId, convId);
+                }
+                break;
+            default:
+                break;
         }
 
         // 8. Log conversation to Supabase for analytics
@@ -317,7 +533,6 @@ export async function POST(request) {
         return Response.json({ error: 'Failed to process' }, { status: 500 });
     }
 }
-
 
 // Helpers
 /**
@@ -362,6 +577,7 @@ function extractEmail(text) {
 function extractPhone(text) {
     try {
         // Match anything that looks like a phone number
+        console.log(` 📞 Extracting phone state from ${text}` )
         const phoneRegex = /[\+]?[1]?[\s.-]?\(?[\d]{3}\)?[\s.-]?[\d]{3,4}[\s.-]?[\d]{4}/g;
         const matches = text.match(phoneRegex);
 
@@ -369,128 +585,14 @@ function extractPhone(text) {
             for (const match of matches) {
                 // Remove everything except digits
                 const digitsOnly = match.replace(/\D/g, '');
-
-                // Add country code if it's exactly 10 digits
-                const normalized = digitsOnly.length === 10 ? '1' + digitsOnly : digitsOnly;
-
-                // Parse with libphonenumber
-                const parsed = parsePhoneNumberFromString('+' + normalized, 'US');
-                if (parsed && parsed.isValid()) {
-                    return parsed.formatNational(); // (754) 485-9632
-                }
+                return digitsOnly;
             }
         }
+
     } catch (e) {
         console.error('Phone extraction error:', e);
     }
     return null;
-}
-
-/**
- * Extract name from conversation context
- * @param {string} currentMessage - The most recent user message
- * @param {Array} conversationHistory - Full conversation history
- * @returns {string|null} - Extracted name or null
- */
-function extractName(currentMessage, conversationHistory) {
-    // FIXME: This is a temporary fix to get the name extraction working
-    console.log('🔍 [NAME EXTRACTION] Starting...');
-    console.log('  Current message:', currentMessage);
-    try {
-
-        // Get the last bot message if it exists
-        const lastBotMessage = conversationHistory.length >= 2
-            ? conversationHistory[conversationHistory.length - 2]
-            : null;
-
-        // FIXME: This is a temporary fix to get the name extraction working
-        console.log('  Last bot message:', lastBotMessage?.content?.substring(0, 100));
-
-        // Check if bot specifically asked for name
-        const nameQuestions = [
-            'your name',
-            "your full name",
-            'who am i speaking with',
-            'may i ask who',
-            'how may i call you'
-        ];
-
-        if (lastBotMessage?.role === 'assistant') {
-            const botAskedForName = nameQuestions.some(q =>
-                lastBotMessage.content.toLowerCase().includes(q)
-            );
-
-            console.log('  Bot asked for name:', botAskedForName);
-
-            if (botAskedForName) {
-                // Bot specifically asked for name, so parse the response carefully
-                const extractedName = parseNameFromResponse(currentMessage);
-                // FIXME: This is a temporary fix to get the name extraction working
-                console.log('  ✅ Extracted name from response:', extractedName);
-                return extractedName;
-            }
-        }
-
-        // Check for explicit name declarations in the message
-        const declarationPatterns = [
-            /(?:my name is|i'm|i am|this is|call me)\s+(.+)/i
-        ];
-
-        for (const pattern of declarationPatterns) {
-            const match = currentMessage.match(pattern);
-            if (match && match[1]) {
-                const potentialName = match[1].trim();
-                // FIXME: This is a temporary fix to get the name extraction working
-                console.log('  Found declaration pattern:', potentialName);
-                return potentialName;
-            }
-        }
-
-        // If message is short and could be just a name, validate it
-        if (currentMessage.split(' ').length <= 3) {
-            const potentialName = currentMessage.trim();
-            console.log('  Short message validation:', potentialName);
-            // But only accept if there's context suggesting name was requested
-            const recentMessages = conversationHistory.slice(-4).map(m => m.content.toLowerCase()).join(' ');
-            const hasNameContext = recentMessages.includes('name');
-            if (hasNameContext) {
-                console.log('  ✅ Name accepted from short message:', potentialName);
-                return potentialName;
-            }
-        }
-
-        console.log('  ⚠️ No name extracted');
-        return null;
-    } catch (e) {
-        console.error('❌ Name extraction error:', e);
-        return null;
-    }
-}
-
-/**
- * Main function to extract all lead information
- * @param {string} message - Current message
- * @param {Array} conversationHistory - Conversation history
- * @returns {Object} - Extracted lead information
- */
-function extractLeadInfo(message, conversationHistory) {
-    // Combine full conversation for email/phone extraction
-    const fullConversation = conversationHistory.map(m => m.content).join(' ') + ' ' + message;
-
-    // Extract each piece of information independently
-    const email = extractEmail(fullConversation);
-    const phone = extractPhone(fullConversation);
-    const name = extractName(message, conversationHistory);
-    const score = null;
-
-    return {
-        email,
-        phone,
-        name,
-        score,
-        timestamp: new Date().toISOString(),
-        conversation: conversationHistory
-    };
 }
 
 /**
@@ -620,90 +722,6 @@ function parseNameFromResponse(response) {
     }
 
     return null;
-}
-
-function shouldProcessLeadCapture(userMessage, botResponse, conversationId) {
-    const state = getLeadCaptureState(conversationId);
-
-    // Already in a lead capture flow - continue it
-    const activeStages = [
-        LeadCaptureStage.OFFER_MADE,
-        LeadCaptureStage.ACCEPTED_OFFER,
-        LeadCaptureStage.COLLECTING_NAME,
-        LeadCaptureStage.NAME_COLLECTED,
-        LeadCaptureStage.COLLECTING_PHONE,
-        LeadCaptureStage.PHONE_COLLECTED,
-        LeadCaptureStage.COLLECTING_EMAIL,
-        LeadCaptureStage.EMAIL_COLLECTED,
-        LeadCaptureStage.CONFIRMING,
-        LeadCaptureStage.AWAITING_CORRECTION
-    ];
-
-    if (activeStages.includes(state.stage)) {
-        console.log(`📋 Continuing lead capture: ${StageDescriptions[state.stage]}`);
-        return true;
-    }
-
-    const userMessageLower = userMessage.toLowerCase();
-    const botResponseLower = botResponse.toLowerCase();
-
-    // Check if bot just offered to help with contact/booking
-    const botOffersCapture =
-        (botResponseLower.includes('would you like') &&
-            (botResponseLower.includes('schedule') ||
-                (botResponseLower.includes('scheduling') ||
-                botResponseLower.includes('book') ||
-                botResponseLower.includes('contact'))) ||
-        botResponseLower.includes('can i get your') ||
-        botResponseLower.includes('may i have your'));
-
-    if (botOffersCapture && state.stage === LeadCaptureStage.IDLE) {
-        transitionStage(state, LeadCaptureStage.OFFER_MADE, 'Bot offered contact');
-
-        // If bot offered and user said yes, START the capture flow
-        if (botOffersCapture) {
-            const positiveResponses = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely'];
-            const negativeResponses = ['no', 'nope', 'not', 'nah', 'maybe later', 'not now'];
-
-            // Check user's response
-            const userResponse = userMessageLower.trim();
-
-            if (positiveResponses.some(resp => userResponse.includes(resp))) {
-                console.log('✅ User accepted to provide contact info');
-                state.stage = LeadCaptureStage.ACCEPTED_OFFER;  // New stage!
-                return true;
-            }
-
-            if (negativeResponses.some(resp => userResponse.includes(resp))) {
-                console.log('❌ User declined to provide contact info');
-                state.stage = LeadCaptureStage.DECLINED_OFFER;
-                return false;
-            }
-        }
-    }
-
-    // Check for direct high-intent triggers from user
-    const highIntentTriggers = [
-        'book an appointment',
-        'schedule a meeting',
-        'get a quote',
-        'contact me',
-        'call me back',
-        'i want to book',
-        'i need to schedule'
-    ];
-
-    const userHasIntent = highIntentTriggers.some(trigger =>
-        userMessageLower.includes(trigger)
-    );
-
-    if (userHasIntent) {
-        console.log('🎯 User expressed direct intent');
-        transitionStage(state, LeadCaptureStage.ACCEPTED_OFFER, 'Direct user intent');
-        return true;
-    }
-
-    return false;
 }
 
 /**
