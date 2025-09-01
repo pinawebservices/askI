@@ -206,6 +206,7 @@ export async function POST(request) {
         const {messages, clientId = 'demo-wellness', conversationId} = await request.json();
         const userMessage = messages[messages.length - 1].content;
         const leadState = getLeadCaptureState(conversationId);
+        let convId;
 
         // New Conversations reset lead stage
         if (messages.length <= 2) {
@@ -214,13 +215,13 @@ export async function POST(request) {
         }
 
         // Require conversation ID from frontend
-        let convId;
         if (!conversationId) {
             console.error(`No conversation ID provided_clientId: ${clientId}, Date: ${Date.now()} .. creating fallback convId`);
 
             // Fallback create convId
             convId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        } else {
+        } else if (!convId){
+            console.log('Assigning convId with ConversationId: ', conversationId);
             convId = conversationId;
         }
 
@@ -449,7 +450,7 @@ export async function POST(request) {
 
                     if (positive.some(word => userMessage.toLowerCase().includes(word))) {
                         transitionStage(leadState, LeadCaptureStage.COMPLETE, 'User confirmed info');
-                        console.log('💾 Saving confirmed lead to database:', leadState.tempLead);
+                        console.log(`💾 Saving confirmed lead to database: ${leadState.tempLead} and ConversationId: ${convId}`);
                         const leadInfo = {
                             ...leadState.tempLead,
                             score: null,
@@ -474,7 +475,7 @@ export async function POST(request) {
                 if (lastAgentMessagePriorToUserAwaiting.includes('name')) {
                     captureAndUpdateLeadName()
                     transitionStage(leadState, LeadCaptureStage.COMPLETE, 'User confirmed info');
-                    console.log('💾 Saving lead with corrected name to database:', leadState.tempLead);
+                    console.log(`💾 Saving lead with corrected name to database: ${leadState.tempLead} and ConversationId: ${convId}`);
                     const leadInfo = {
                         ...leadState.tempLead,
                         score: null,
@@ -630,61 +631,116 @@ function extractPhone(text) {
  * );
  */
 async function captureAndNotifyLead(leadInfo, clientId, conversationId) {
-    // Check if we already captured a lead for this conversation
-    const { data: existingLead } = await supabaseAdmin
-        .from('captured_leads')
-        .select('id, email, phone, name, notification_sent')
-        .eq('client_id', clientId)
-        .eq('conversation_id', conversationId)
-        .single();
 
-    if (existingLead) {
-        // Update existing lead with new info instead of creating duplicate
-        const updates = {};
-        if (leadInfo.email && !existingLead.email) updates.email = leadInfo.email;
-        if (leadInfo.phone && !existingLead.phone) updates.phone = leadInfo.phone;
-        if (leadInfo.name && !existingLead.name) updates.name = leadInfo.name;
+    try {
+        console.log('🚀 captureAndNotifyLead called with:', {
+            clientId,
+            conversationId,
+            hasEmail: !!leadInfo.email,
+            hasPhone: !!leadInfo.phone,
+            hasName: !!leadInfo.name
+        });
 
-        if (Object.keys(updates).length > 0) {
-            await supabaseAdmin
-                .from('captured_leads')
-                .update(updates)
-                .eq('id', existingLead.id);
+        // Validate required parameters
+        if (!clientId || !conversationId) {
+            console.error('❌ Missing required parameters:', { clientId, conversationId });
+            return;
+        }
 
-            // Send notification if this is significant new info
-            if ((updates.email || updates.phone) && !existingLead.notification_sent) {
-                // await sendLeadNotification({...existingLead, ...updates}, clientId);
+
+        // Check if we already captured a lead for this conversation
+        const {data: existingLead} = await supabaseAdmin
+            .from('captured_leads')
+            .select('id, email, phone, name, notification_sent')
+            .eq('client_id', clientId)
+            .eq('conversation_id', conversationId)
+            .single();
+
+        if (existingLead) {
+            // Update existing lead with new info instead of creating duplicate
+            console.log('Existing lead found...');
+            const updates = {};
+            if (leadInfo.email && !existingLead.email) updates.email = leadInfo.email;
+            if (leadInfo.phone && !existingLead.phone) updates.phone = leadInfo.phone;
+            if (leadInfo.name && !existingLead.name) updates.name = leadInfo.name;
+
+            if (Object.keys(updates).length > 0) {
                 await supabaseAdmin
                     .from('captured_leads')
-                    .update({ notification_sent: true })
+                    .update(updates)
                     .eq('id', existingLead.id);
-            }
-        }
-        return;
-    }
 
-    // Create new lead if none exists
-    const { data, error } = await supabaseAdmin
-        .from('captured_leads')
-        .insert({
+                // Send notification if this is significant new info
+                if ((updates.email || updates.phone) && !existingLead.notification_sent) {
+                    // await sendLeadNotification({...existingLead, ...updates}, clientId);
+                    await supabaseAdmin
+                        .from('captured_leads')
+                        .update({notification_sent: true})
+                        .eq('id', existingLead.id);
+                }
+            }
+            return;
+        }
+
+        // Create new lead if none exists
+        console.log('📝 Attempting to insert new lead:', {
             client_id: clientId,
-            conversation_id: conversationId,  // Add this!
+            conversation_id: conversationId,
             email: leadInfo.email,
             phone: leadInfo.phone,
             name: leadInfo.name,
             lead_score: leadInfo.score,
             captured_at: leadInfo.timestamp,
-            conversation_summary: leadInfo.conversation
-        })
-        .select()
-        .single();
+            conversation_length: leadInfo.conversation?.length || 0
+        });
 
-    if (!error && data) {
-        //await sendLeadNotification(leadInfo, clientId);
-        await supabaseAdmin
+        const {data, error} = await supabaseAdmin
             .from('captured_leads')
-            .update({ notification_sent: true })
-            .eq('id', data.id);
+            .insert({
+                client_id: clientId,
+                conversation_id: conversationId,  // Add this!
+                email: leadInfo.email,
+                phone: leadInfo.phone,
+                name: leadInfo.name,
+                lead_score: leadInfo.score,
+                captured_at: leadInfo.timestamp,
+                conversation_summary: leadInfo.conversation
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('❌ Failed to insert lead:', error);
+            console.error('Error details:', {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint
+            });
+            // Don't throw - just log the error to prevent chat disruption
+            return;
+        }
+
+        if (data) {
+            console.log('✅ Lead successfully saved to database:', data);
+
+            // Update notification status
+            const {error: updateError} = await supabaseAdmin
+                .from('captured_leads')
+                .update({notification_sent: true})
+                .eq('id', data.id);
+
+            if (updateError) {
+                console.error('⚠️ Failed to update notification status:', updateError);
+            } else {
+                console.log('✅ Notification status updated');
+            }
+        } else {
+            console.warn('⚠️ No data returned after insert operation');
+        }
+    } catch (error) {
+        console.error('❌ Unexpected error in captureAndNotifyLead:', error);
+        // Don't throw to prevent chat disruption
     }
 }
 

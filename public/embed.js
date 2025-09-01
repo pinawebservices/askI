@@ -286,12 +286,15 @@
     // let conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     // Retrieve Existing or Generate new conversation ID
     let conversationId = sessionStorage.getItem('embed_conversationId');
-    if (!conversationId) {
-      conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('embed_conversationId', conversationId);
-      console.log('📝 [Embed] Created new conversation ID:', conversationId);
-    } else {
-      console.log('📝 [Embed] Using existing conversation ID:', conversationId);
+    const getOrCreateConversationId = (conversationId) => {
+      if (!conversationId || messages.length <= 2) {
+        conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        sessionStorage.setItem('embed_conversationId', conversationId);
+        console.log('📝 [Embed] Created new conversation ID:', conversationId);
+      } else {
+        console.log('📝 [Embed] Using existing conversation ID:', conversationId);
+      }
+      return conversationId;
     }
 
     // Prepare the message
@@ -328,7 +331,7 @@
           businessType: config.businessType,
           customDetails: config.customDetails,
           clientId: config.clientId,  // This also tells Pinecone which namespace to use
-          conversationId: conversationId
+          conversationId: getOrCreateConversationId(conversationId)
         }),
       });
 
