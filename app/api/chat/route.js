@@ -1,10 +1,9 @@
-// app/api/chat/route.js - Enhanced with Supabase
+// app/api/chat/route.js
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import validator from 'validator';
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
-
+import { IndustryConfig, loadIndustryConfigs } from '@/lib/industries';
 
 // Add this near the top of your route.js file
 const conversationStates = new Map(); // Store state per conversation
@@ -75,131 +74,11 @@ function getLeadCaptureState(conversationId) {
     return conversationStates.get(conversationId);
 }
 
+loadIndustryConfigs();
+
 /**
  * Update lead capture based on conversation flow
  */
-function updateLeadCapture(currentMessage, conversationHistory, conversationId) {
-    const state = getLeadCaptureState(conversationId);
-    const lastBotMessage = conversationHistory[conversationHistory.length - 2]?.content?.toLowerCase() || '';
-
-    console.log(`📊 Lead Capture State: ${state.stage}`);
-    console.log(`Last bot message: ${lastBotMessage}`);
-    console.log(`Current message: ${currentMessage}`);
-
-    switch (state.stage) {
-        case LeadCaptureStage.IDLE:
-            // Check if bot just offered to help with contact/booking
-            const botOffersCapture =
-                (lastBotMessage.includes('would you like') &&
-                    (lastBotMessage.includes('schedule') ||
-                        lastBotMessage.includes('scheduling') ||
-                        lastBotMessage.includes('book') ||
-                        lastBotMessage.includes('booking') ||
-                        lastBotMessage.includes('appointment') ||
-                        lastBotMessage.includes('contact'))) ||
-                lastBotMessage.includes('can i get your') ||
-                lastBotMessage.includes('may i have your');
-
-            if (botOffersCapture) {
-                console.log('🎯 Bot offered contact collection');
-                transitionStage(state, LeadCaptureStage.CAPTURE_INITIALIZED, 'Bot offered contact');
-
-                // Check if user just accepted
-                const userMessageLower = currentMessage.toLowerCase().trim();
-                const positiveResponses = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely'];
-                const negativeResponses = ['no', 'nope', 'not', 'nah', 'maybe later', 'not now'];
-
-                if (positiveResponses.some(resp => userMessageLower.includes(resp))) {
-                    console.log('✅ User accepted offer');
-                    transitionStage(state, LeadCaptureStage.ACCEPTED_OFFER, 'User accepted offer');
-                } else if (negativeResponses.some(resp => userMessageLower.includes(resp))) {
-                    console.log('❌ User declined to provide contact info');
-                    transitionStage(state, LeadCaptureStage.DECLINED_OFFER, 'User declined offer');
-                }
-            }
-            break;
-        case LeadCaptureStage.ACCEPTED_OFFER:
-            // User accepted, bot should ask for name next
-            if (lastBotMessage.includes('name')) {
-                transitionStage(state, LeadCaptureStage.COLLECTING_NAME, 'Bot asked for name');
-            }
-            break;
-
-        case LeadCaptureStage.COLLECTING_NAME:
-            const name = parseNameFromResponse(currentMessage);
-            if (name) {
-                state.tempLead.name = name;
-                // transitionStage(state, LeadCaptureStage.NAME_COLLECTED, `Name captured: ${name}`);
-            }
-            break;
-
-        case LeadCaptureStage.NAME_COLLECTED:
-            if (lastBotMessage.includes('phone')) {
-                transitionStage(state, LeadCaptureStage.COLLECTING_PHONE, 'Bot asked for phone');
-            }
-            break;
-
-        case LeadCaptureStage.COLLECTING_PHONE:
-            const phone = extractPhone(currentMessage);
-            if (phone) {
-                state.tempLead.phone = phone;
-                transitionStage(state, LeadCaptureStage.PHONE_COLLECTED, `Phone captured: ${phone}`);
-            }
-            break;
-
-        case LeadCaptureStage.PHONE_COLLECTED:
-            if (lastBotMessage.includes('email')) {
-                transitionStage(state, LeadCaptureStage.COLLECTING_EMAIL, 'Bot asked for email');
-            }
-            break;
-
-        case LeadCaptureStage.COLLECTING_EMAIL:
-            const email = extractEmail(currentMessage);
-            if (email) {
-                state.tempLead.email = email;
-                transitionStage(state, LeadCaptureStage.EMAIL_COLLECTED, `Email captured: ${email}`);
-            }
-            break;
-
-        case LeadCaptureStage.EMAIL_COLLECTED:
-            if (lastBotMessage.includes('is this information correct') ||
-                lastBotMessage.includes('confirm')) {
-                transitionStage(state, LeadCaptureStage.CONFIRMING, 'Bot asked for confirmation');
-            }
-            break;
-
-        case LeadCaptureStage.CONFIRMING:
-            const positive = ['yes', 'yep', 'correct', 'right', 'perfect', 'yea'];
-            const negative = ['no', 'wrong', 'incorrect', 'change','that\'s not','thats not'];
-
-            if (positive.some(word => currentMessage.toLowerCase().includes(word))) {
-                transitionStage(state, LeadCaptureStage.COMPLETE, 'User confirmed info');
-                return state.tempLead; // Return the confirmed lead!
-            }
-
-            if (negative.some(word => currentMessage.toLowerCase().includes(word))) {
-                transitionStage(state, LeadCaptureStage.AWAITING_CORRECTION, 'User wants corrections');
-            }
-            break;
-
-        case LeadCaptureStage.AWAITING_CORRECTION:
-            // Handle corrections based on what user wants to fix
-            const lower = currentMessage.toLowerCase();
-            if (lower.includes('name')) {
-                transitionStage(state, LeadCaptureStage.COLLECTING_NAME, 'Correcting name');
-            } else if (lower.includes('phone')) {
-                transitionStage(state, LeadCaptureStage.COLLECTING_PHONE, 'Correcting phone');
-            } else if (lower.includes('email')) {
-                transitionStage(state, LeadCaptureStage.COLLECTING_EMAIL, 'Correcting email');
-            }
-            break;
-
-        default:
-            console.log(`⚠️ Unhandled stage: ${state.stage}`);
-    }
-
-    return null; // No confirmed lead yet
-}
 
 export async function POST(request) {
     try {
@@ -259,23 +138,34 @@ export async function POST(request) {
             .join('\n\n');
 
         // 4. Build enhanced prompt with instructions
-        const systemPrompt = `You are a helpful assistant for ${instructions?.business_name || 'the business'}.
+        const promptContext = {
+            userMessage,
+            businessName: instructions?.business_name,
+            businessType: instructions?.business_type,
+            relevantContext,
+            instructions
+        }
 
-                RELEVANT INFORMATION:
+        const industryEnhancement = IndustryConfig.getSystemPromptEnhancement(instructions?.industry || 'default', promptContext);
+
+        // FIXME: Future Enhancement
+        // // Get industry-specific lead qualification
+        // const leadQualification = IndustryConfig.getLeadQualificationFlow(
+        //     instructions?.industry || 'default'
+        // );
+
+        const systemPrompt = `${industryEnhancement}
+
+                BUSINESS KNOWLEDGE BASE:
                 ${relevantContext}
                 
-                ${instructions?.special_instructions ? `SPECIAL INSTRUCTIONS:
-                ${instructions.special_instructions}` : ''}
+                ${instructions?.special_instructions ? `SPECIAL INSTRUCTIONS: ${instructions.special_instructions}` : ''}
                 
-                ${instructions?.tone_style ? `TONE: Be ${instructions.tone_style} and professional.` : ''}
+                ${instructions?.tone_style ? `COMMUNICATION STYLE: Be ${instructions.tone_style} and professional.` : 'helpful and professional.'}
                 
-                ${instructions?.formatting_rules ? `FORMATTING:
-                ${instructions.formatting_rules}` : ''}
+                ${instructions?.formatting_rules ? `FORMATTING: ${instructions.formatting_rules}` : ''}
                 
-                ${instructions?.lead_capture_process ? `FOR BOOKINGS:
-                ${instructions.lead_capture_process}` : ''}
-                
-                Answer based on the information provided. Be helpful and professional.
+                Answer based on the information provided. Always maintain professionalism and build trust while gathering necessary information.
                 
                 LEAD CAPTURE PROCESS:
                 When a user shows interest in booking,scheduling,pricing, being contacted, or getting in contact with one of our representatives follow this EXACT sequence:
@@ -301,6 +191,19 @@ export async function POST(request) {
                 - Always use the confirmation step
                 - Be conversational but stay on track`;
 
+        console.log('🤖 ============ OPENAI REQUEST ============');
+        console.log('Prompt Context UserName: ', promptContext.userName)
+        console.log('Prompt Context BusinessName: ', promptContext.businessName)
+        console.log('Prompt Context BusinessType: ', promptContext.businessType)
+        console.log('Prompt Context RelevantContext: ', promptContext.relevantContext)
+        console.log('Prompt Context Instructions: ', promptContext.instructions)
+        console.log('📋 Industry Enhanced Prompt: ', industryEnhancement);
+        console.log('📋 System Prompt:', systemPrompt);
+        // console.log('💬 Messages History:', JSON.stringify(messages, null, 2));
+        // console.log('🔧 Model:', 'gpt-4.1-nano');
+        // console.log('🌡️ Temperature:', 0.7);
+        // console.log('📏 Max Tokens:', 400);
+        console.log('=========================================\n');
         // 5. Generate response
         const completion = await openai.chat.completions.create({
             model: 'gpt-4.1-nano' +
