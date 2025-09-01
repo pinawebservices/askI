@@ -17,10 +17,10 @@ async function setupClient(clientId) {
 
     try {
         // Load client data file
-        const clientFilePath = path.join(__dirname, '..', 'clients', `${clientId}.js`);
+        const clientFilePath = path.join(__dirname, '..', 'client-configs', `${clientId}.js`);
 
         if (!fs.existsSync(clientFilePath)) {
-            console.error(`❌ Client data file not found: clients/${clientId}.js`);
+            console.error(`❌ Client data file not found: client-configs/${clientId}.js`);
             console.log('\nAvailable clients:');
 
             // List available client files
@@ -36,7 +36,7 @@ async function setupClient(clientId) {
         }
 
         // Import client data
-        const { default: clientData } = await import(`../clients/${clientId}.js`);
+        const { default: clientData } = await import(`../client-configs/${clientId}.js`);
 
         console.log(`\n🚀 Setting up client: ${clientData.business_name}`);
         console.log(`📋 Client ID: ${clientData.client_id}`);
