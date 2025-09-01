@@ -10,7 +10,8 @@
     "setup-client": "node scripts/setup-client-complete.js",
     "update-client": "node scripts/update-client.js",
     "list-clients": "node scripts/list-clients.js",
-    "test-pinecone-client-search": "node scripts/test-pinecone-client-search.js"
+    "test-pinecone-client-search": "node scripts/test-pinecone-client-search.js",
+    "test-imports": "node scripts/test-imports.js"
   },
   "type": "module",
   "dependencies": {

@@ -214,9 +214,9 @@ export default function ApartmentsPage(): React.JSX.Element {
               __html: `
                         window.aiChatbotConfig = {
                             apiUrl: "http://localhost:3000",
-                            businessType: "wellness", 
-                            businessName: "Serenity Wellness Center",
-                            clientId: "demo-wellness",
+                            businessType: "Law Firm", 
+                            businessName: "Morrison & Associates Law Firm",
+                            clientId: "law-101",
                             theme: {
                                 primaryColor: "#1E88E5",
                                 textColor: "#FFFFFF"
