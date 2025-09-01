@@ -146,7 +146,7 @@ export async function POST(request) {
             instructions
         }
 
-        const industryEnhancement = IndustryConfig.getSystemPromptEnhancement(instructions?.industry || 'default', promptContext);
+        const industryEnhancement = IndustryConfig.getSystemPromptEnhancement(instructions?.business_type || 'default', promptContext);
 
         // FIXME: Future Enhancement
         // // Get industry-specific lead qualification

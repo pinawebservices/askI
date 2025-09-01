@@ -3,7 +3,7 @@
 
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../lib/services/supabaseService.js';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -22,11 +22,6 @@ const pinecone = new Pinecone({
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 /**
  * Test search functionality for a client
@@ -48,16 +43,15 @@ async function testClientSearch(clientId, options = {}) {
         console.log('\n📊 Checking Supabase...');
         const { data: client, error } = await supabase
             .from('clients')
-            .select('business_name, industry, plan_type')
+            .select('business_name, plan_type')
             .eq('client_id', clientId)
             .single();
 
         if (error || !client) {
-            throw new Error(`Client ${clientId} not found in Supabase`);
+            throw new Error(`Error retrieving client or Client ${clientId} not found in Supabase`);
         }
 
         console.log(`✅ Found: ${client.business_name}`);
-        console.log(`   Industry: ${client.industry}`);
         console.log(`   Plan: ${client.plan_type}`);
 
         // Step 2: Get industry-specific test queries
