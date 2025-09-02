@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import validator from 'validator';
 import { IndustryConfig, loadIndustryConfigs } from '@/lib/industries';
+import {sendLeadNotificationEmail} from "@/lib/services/notifications/emailNotifications.js";
 
 // Add this near the top of your route.js file
 const conversationStates = new Map(); // Store state per conversation
@@ -627,17 +628,28 @@ async function captureAndNotifyLead(leadInfo, clientId, conversationId) {
         if (data) {
             console.log('✅ Lead successfully saved to database:', data);
 
-            // Update notification status
-            const {error: updateError} = await supabaseAdmin
-                .from('captured_leads')
-                .update({notification_sent: true})
-                .eq('id', data.id);
+            // Send email notification
+            const emailId = await sendLeadNotificationEmail(
+                { ...leadInfo, id: data.id },
+                clientId
+            );
 
-            if (updateError) {
-                console.error('⚠️ Failed to update notification status:', updateError);
-            } else {
-                console.log('✅ Notification status updated');
+            if (emailId){
+                console.log('📧 Email notification sent:', emailId);
+
+                // Update notification status
+                const {error: updateError} = await supabaseAdmin
+                    .from('captured_leads')
+                    .update({notification_sent: true})
+                    .eq('id', data.id);
+
+                if (updateError) {
+                    console.error('⚠️ Failed to update notification status:', updateError);
+                } else {
+                    console.log('✅ Notification status updated');
+                }
             }
+
         } else {
             console.warn('⚠️ No data returned after insert operation');
         }
