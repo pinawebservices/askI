@@ -24,8 +24,8 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang="en">
-        <body className={`font-sans ${inter.variable} antialiased`}>
+        <html lang="en" className={inter.variable}>
+        <body className="font-sans antialiased">
         <Suspense fallback={<div>Loading...</div>}>
             {children}
         </Suspense>
