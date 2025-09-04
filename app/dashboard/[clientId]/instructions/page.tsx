@@ -53,7 +53,7 @@ export default function InstructionsPage() {
         hasFetchedRef.current = true;
 
         loadInstructions();
-    }, []); // Empty dependency array - only run once
+    }, ); // Empty dependency array - only run once
 
     async function loadInstructions() {
         try {
