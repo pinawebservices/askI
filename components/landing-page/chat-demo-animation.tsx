@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 // Define the message type interface
 interface Message {
@@ -34,13 +34,15 @@ const ChatDemoAnimation = ({
                                businessName = "AI Agent",
                                primaryColor = "#2563eb",
                                typingDelay = 1500, // How long to show typing dots before message appears
-                               messageDelay = 2000, // Delay between messages
+                               messageDelay = 3000, // Delay between messages
                                loop = true,
-                               loopDelay = 3000 // Delay before restarting the animation
+                               loopDelay = 20000 // Delay before restarting the animation
                            }) => {
     const [visibleMessages, setVisibleMessages] = useState<Message[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const [currentTypingMessage, setCurrentTypingMessage] = useState("");
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const messagesToShow = useMemo(() => {
         return messages.length > 0 ? messages : defaultMessages;
@@ -107,6 +109,17 @@ const ChatDemoAnimation = ({
         };
     }, [messagesToShow, typingDelay, messageDelay, loop, loopDelay]);
 
+    // Add this new useEffect after your existing one:
+    useEffect(() => {
+        if (messagesEndRef.current && containerRef.current) {
+            // Smooth scroll to bottom
+            containerRef.current.scrollTo({
+                top: containerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [visibleMessages, isTyping]);
+
     // Format message content (handle bold text with **)
     const formatContent = (content: string) => {
         const parts = content.split(/\*\*(.*?)\*\*/g);
@@ -143,7 +156,7 @@ const ChatDemoAnimation = ({
                 </div>
 
                 {/* Messages Container */}
-                <div className="h-80 overflow-y-auto p-4 bg-gray-50">
+                <div ref={containerRef} className="h-80 overflow-y-auto p-4 bg-gray-50">
                     <div className="space-y-3">
                         {visibleMessages.map((message, index) => (
                             <div
@@ -195,6 +208,7 @@ const ChatDemoAnimation = ({
                                 </div>
                             </div>
                         )}
+                        <div ref={messagesEndRef} />
                     </div>
                 </div>
 
