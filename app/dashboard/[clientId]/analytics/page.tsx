@@ -4,13 +4,13 @@ import { notFound } from 'next/navigation';
 import type { Client } from '@/types/database';
 
 interface ClientDashboardProps {
-    params: {
+    params: Promise<{
         clientId: string;
-    };
+    }>;
 }
 
 export default async function ClientDashboard({ params }: ClientDashboardProps) {
-    const { clientId } = params;
+    const { clientId } = await params;
 
     // Fetch client data with type safety
     const { data: client, error } = await supabase
