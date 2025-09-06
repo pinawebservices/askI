@@ -67,12 +67,52 @@
 
   // Create floating button
   function createFloatingButton() {
-    const button = document.createElement("button");
-    button.style.cssText = `
+
+    console.log("Creating floating button..."); // Debug log
+
+    // Create wrapper for button and message
+    const floatingButtonWrapper = document.createElement("div");
+    floatingButtonWrapper.style.cssText = `
+      position: relative;
+      display: inline-block;
+    `;
+
+    // Create message popup
+    const messagePopup = document.createElement("div");
+    messagePopup.style.cssText = `
+      position: absolute;
+      bottom: 80px;  /* Adjust distance above button */
+      right: 0;
+      background: white;
+      color: #1f2937;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      border: 1px solid #e5e7eb;
+      z-index: 10002;  /* Higher than chat window */
+      display: none;
+    `;
+    messagePopup.className = "chat-message-popup chat-message-pulse";
+    messagePopup.innerHTML = `
+      <span>👋 I can help you with any question!</span>
+      <span class="chat-message-close" style="margin-left: 8px; cursor: pointer; opacity: 0.6;">✕</span>
+    `;
+    messagePopup.style.display = "none"; // Hidden initially
+
+    console.log("Message popup created:", messagePopup); // Debug log
+
+    const floatingButton = document.createElement("button");
+
+    floatingButton.className = "chat-widget-bounce";
+    floatingButton.style.cssText = `
       width: 70px;
       height: 70px;
       border-radius: 50%;
       background-color: ${config.theme.primaryColor};
+      color: ${config.theme.textColor};
       border: none;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -83,7 +123,7 @@
       color: white;
     `;
 
-    button.innerHTML = `
+    floatingButton.innerHTML = `
       <svg id="Layer_1" width="48" height="48" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 179.25 108.52">
         <defs>
           <style>
@@ -99,18 +139,46 @@
        </svg>
     `;
 
-    button.onmouseover = () => {
-      button.style.transform = "scale(1.1)";
-      button.style.boxShadow = "0 6px 20px rgba(0,0,0,0.2)";
+    floatingButton.onmouseover = () => {
+      floatingButton.style.transform = "scale(1.1)";
+      floatingButton.style.boxShadow = "0 6px 20px rgba(0,0,0,0.2)";
     };
 
-    button.onmouseout = () => {
-      button.style.transform = "scale(1)";
-      button.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+    floatingButton.onmouseout = () => {
+      floatingButton.style.transform = "scale(1)";
+      floatingButton.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
     };
 
-    button.onclick = toggleWidget;
-    return button;
+    floatingButton.onclick = toggleWidget;
+
+    // Handle message close button
+    messagePopup.addEventListener('click', (e) => {
+      if (e.target.classList.contains('chat-message-close')) {
+        messagePopup.style.display = 'none';
+      }
+    });
+
+    // Add both to wrapper
+    floatingButtonWrapper.appendChild(messagePopup);
+    floatingButtonWrapper.appendChild(floatingButton);
+
+    // Show message after 3 seconds
+    setTimeout(() => {
+      console.log("Trying to show message. isOpen:", isOpen);
+      if (!isOpen) { // Only show if chat is still closed
+        messagePopup.style.display = "block";
+        console.log("Message should be visible now");
+      }
+    }, 3000);
+
+    // // Hide message after 15 seconds total
+    // setTimeout(() => {
+    //   messagePopup.style.display = "none";
+    // }, 15000);
+
+    console.log("Wrapper created with children:", floatingButtonWrapper);
+
+    return floatingButtonWrapper;
   }
 
   // Create chat window
@@ -420,6 +488,7 @@
 
       const chatWindow = createChatWindow();
       chatWindow.id = "chat-window";
+      chatWindow.style.zIndex = "10001"; // Make sure this has a z-index
 
       // Add to container
       widgetContainer.appendChild(chatWindow);
@@ -508,6 +577,52 @@
         br + br {
           display: none;
         }
+        
+        /* Chat Message Popup - Add these styles here */
+  .chat-message-popup {
+    position: absolute;
+    bottom: 110%;
+    right: 0;
+    background: white;
+    color: #1f2937;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    animation: slideInUp 0.4s ease-out;
+    z-index: 10001;
+  }
+  
+  .chat-message-popup::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 20px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid white;
+  }
+  
+  .chat-message-close {
+    margin-left: 8px;
+    padding: 2px;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
       `;
       document.head.appendChild(style);
 

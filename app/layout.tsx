@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 // import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import {FinHeader} from "@/components/landing-page/fin-header";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -12,7 +13,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-    title: "Fin - The #1 AI Agent for Customer Service",
+    title: "Lex - Your New Business Agent",
     description:
         "Fin is the best-performing and most powerful AI Agent, resolving more complex queries and delivering higher resolution rates than any other AI Agent.",
     generator: "v0.app",
@@ -26,6 +27,7 @@ export default function RootLayout({
     return (
         <html lang="en" className={inter.variable}>
         <body className="font-sans antialiased">
+        <FinHeader/>
         <Suspense fallback={<div>Loading...</div>}>
             {children}
         </Suspense>

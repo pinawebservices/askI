@@ -3,12 +3,13 @@ import ChatDemoAnimation from "@/components/landing-page/chat-demo-animation";
 
 export function FinHero() {
     return (
-        <section className="px-6 py-16 lg:px-8">
+        <section className="px-6 py-16 lg:px-8" style={{ paddingTop: "12.5rem" }}>
             <div className="mx-auto max-w-7xl">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
-                        <h1 className="text-5xl lg:text-6xl font-normal leading-tight text-black">
-                            The <span className="italic">#1</span> AI Agent for all your customer service
+                        <h1 className="text-5xl lg:text-6xl leading-tight text-black font-sans font-light" >
+                            Not Another Chatbot.<br />
+                            <span className="font-medium">An Agent.</span>
                         </h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
