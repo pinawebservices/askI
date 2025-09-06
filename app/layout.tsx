@@ -5,6 +5,7 @@ import { Inter } from "next/font/google"
 import { Suspense } from "react"
 import "./globals.css"
 import {FinHeader} from "@/components/landing-page/fin-header";
+import {FinFooter} from "@/components/landing-page/footer";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
         <Suspense fallback={<div>Loading...</div>}>
             {children}
         </Suspense>
+        <FinFooter />
         </body>
         </html>
     )

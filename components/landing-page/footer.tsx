@@ -1,6 +1,6 @@
 import { Zap, Twitter, Linkedin, Github } from "lucide-react"
 
-export function Footer() {
+export function FinFooter() {
     return (
         <footer className="bg-foreground text-background">
             <div className="container py-16">

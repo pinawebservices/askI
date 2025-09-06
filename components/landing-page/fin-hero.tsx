@@ -3,18 +3,17 @@ import ChatDemoAnimation from "@/components/landing-page/chat-demo-animation";
 
 export function FinHero() {
     return (
-        <section className="px-6 py-16 lg:px-8" style={{ paddingTop: "12.5rem" }}>
+        <section className="px-6 py-16 lg:px-8 lg:pt-20" >
             <div className="mx-auto max-w-7xl">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
                         <h1 className="text-5xl lg:text-6xl leading-tight text-black font-sans font-light" >
                             Not Another Chatbot.<br />
-                            <span className="font-medium">An Agent.</span>
+                            <span className="font-medium">A Smart Agent.</span>
                         </h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-                            Fin is the best-performing and most powerful AI Agent, resolving more complex queries and delivering
-                            higher resolution rates than any other AI Agent.
+                            Introducing Lex, your firm&apos;s new AI associate — captures that 35% of high-intent prospects who search after hours. Trained exclusively on the documents and knowledge YOU choose. Handles FAQs and qualifies leads 24/7, ensuring no opportunity escapes whether it&apos;s 2 PM or 2 AM.
                         </p>
 
                         <div className="flex gap-4">

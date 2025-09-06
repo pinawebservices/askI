@@ -68,8 +68,6 @@
   // Create floating button
   function createFloatingButton() {
 
-    console.log("Creating floating button..."); // Debug log
-
     // Create wrapper for button and message
     const floatingButtonWrapper = document.createElement("div");
     floatingButtonWrapper.style.cssText = `
@@ -101,8 +99,6 @@
       <span class="chat-message-close" style="margin-left: 8px; cursor: pointer; opacity: 0.6;">✕</span>
     `;
     messagePopup.style.display = "none"; // Hidden initially
-
-    console.log("Message popup created:", messagePopup); // Debug log
 
     const floatingButton = document.createElement("button");
 
@@ -164,10 +160,8 @@
 
     // Show message after 3 seconds
     setTimeout(() => {
-      console.log("Trying to show message. isOpen:", isOpen);
       if (!isOpen) { // Only show if chat is still closed
         messagePopup.style.display = "block";
-        console.log("Message should be visible now");
       }
     }, 3000);
 
@@ -175,8 +169,6 @@
     // setTimeout(() => {
     //   messagePopup.style.display = "none";
     // }, 15000);
-
-    console.log("Wrapper created with children:", floatingButtonWrapper);
 
     return floatingButtonWrapper;
   }
