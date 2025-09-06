@@ -9,7 +9,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+                sans: ['aileron','var(--font-inter)', 'system-ui', 'sans-serif'],
             },
             colors: {
                 border: "hsl(var(--border))",
