@@ -4,10 +4,10 @@ export function IntegrationInsight() {
             <div className="mx-auto max-w-7xl">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
-                        <h1 className="text-5xl lg:text-6xl leading-tight text-black font-sans font-light">Easy Integration</h1>
+                        <h1 className="text-5xl lg:text-6xl leading-tight text-black font-sans font-light">Secure & Seemless Implementation</h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-                            Your competitors respond in 5 minutes. You respond in 47 hours. That&apos;s why they&apos;re winning 78% of your leads.
+                            Enterprise-grade AI agent without enterprise complexity. Deploy securely on any website, maintain without technical resources, and adapt instantly to your changing business needs.
                         </p>
                         {/*<div className="mt-12 max-w-lg">*/}
                         {/*    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">*/}
@@ -31,27 +31,27 @@ export function IntegrationInsight() {
                         {/*</div>*/}
                     </div>
                     <div className="lg:pl-12">
-                        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-6">Insights</h2>
+                        {/*<h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-6">Insights</h2>*/}
 
                         <div className="space-y-6">
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    Stop paying $300/hour experts to answer $3 questions. Start capturing $30,000 clients at 3 AM.
+                                    Zero system dependencies - Works with any website platform (WordPress, Squarespace, custom builds) without requiring access to your CRM, database, or internal tools.
                                 </p>
                             </div>
 
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    $9,071 SAVED PER PROFESSIONAL ANNUALLY Just in time wasted searching for information. The revenue impact? Exponentially higher.
+                                    No maintenance burden - Set it and forget it. Updates happen automatically without interrupting your business, breaking your website, or requiring IT involvement.
                                 </p>
                             </div>
 
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    Firms responding within 5 minutes are 800% more likely to convert. When did you last respond at midnight?
+                                    Trained on your business - Unlike generic chatbots, your AI agent learns from your actual documentation and processes, delivering accurate, company-specific answers every time.
                                 </p>
                             </div>
                         </div>

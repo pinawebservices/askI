@@ -42,7 +42,7 @@ export function TestimonialsSection() {
                     {testimonials.map((testimonial, index) => (
                         <Card key={index}>
                             <CardContent className="p-6">
-                                <blockquote className="text-lg leading-7">"{testimonial.quote}"</blockquote>
+                                <blockquote className="text-lg leading-7">&quot;{testimonial.quote}&quot;</blockquote>
                                 <div className="mt-6 flex items-center gap-4">
                                     <Avatar>
                                         <AvatarImage src={testimonial.avatar || "/placeholder.svg"} alt={testimonial.author} />

@@ -28,7 +28,6 @@ export default function RootLayout({
     return (
         <html lang="en" className={inter.variable}>
         <body className="font-sans antialiased">
-        <FinHeader/>
         <Suspense fallback={<div>Loading...</div>}>
             {children}
         </Suspense>

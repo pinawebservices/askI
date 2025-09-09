@@ -13,7 +13,7 @@ export function FinHero() {
                         </h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-                            Introducing Lex, your firm&apos;s new AI associate — captures that 35% of high-intent prospects who search after hours. Trained exclusively on the documents and knowledge YOU choose. Handles FAQs and qualifies leads 24/7, ensuring no opportunity escapes whether it&apos;s 2 PM or 2 AM.
+                            Introducing Lex, your firm&apos;s new AI associate — captures that 35% of high-intent prospects who search after hours. Trained exclusively on the documents and knowledge you choose. Handles FAQs and qualifies leads 24/7, ensuring no opportunity escapes whether it&apos;s 2 PM or 2 AM.
                         </p>
 
                         <div className="flex gap-4">
