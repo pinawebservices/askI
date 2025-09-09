@@ -25,11 +25,11 @@ export default function ChatbotProvider() {
         // Configure chatbot
         window.aiChatbotConfig = {
             apiUrl: 'https://aski-chatbot.vercel.app',
-            businessType: "wellness",
-            businessName: "Serenity Wellness Center",
-            clientId: 'demo-wellness',
+            businessType: "Law Firm",
+            businessName: "Morrison & Associates Law Firm",
+            clientId: "law-101",
             theme: {
-                primaryColor: '#f97316',
+                primaryColor: '#000000',
                 textColor: '#FFFFFF'
             }
         }

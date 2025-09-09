@@ -11,6 +11,8 @@ import {Divider} from "@/components/divider";
 import {IntegrationInsight} from "@/components/landing-page/insights-integration";
 import {IntelligenceInsight} from "@/components/landing-page/insights-intelligence";
 import {CtaSection} from "@/components/landing-page/cta-section";
+import ChatbotProvider from "@/components/ai-chatbot-demo";
+import {FinHeader} from "@/components/landing-page/fin-header";
 
 export default function HomePage() {
   return (
@@ -33,6 +35,7 @@ export default function HomePage() {
           {/* Your Content - Make sure it's above the background */}
           <div className="relative z-10">
               <main className="pt-16">
+                  <FinHeader/>
                   <FinHero />
                   <LeadGenerationInsight />
                   <Divider />
@@ -44,7 +47,7 @@ export default function HomePage() {
                   {/*<PricingSection />*/}
                   <CtaSection />
               </main>
-              {/* /!*AI Chatbot Widget -- DEV *!/*/}
+               {/*AI Chatbot Widget -- DEV */}
               <script
                   dangerouslySetInnerHTML={{
                       __html: `

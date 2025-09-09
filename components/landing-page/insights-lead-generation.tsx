@@ -8,24 +8,25 @@ export function LeadGenerationInsight() {
                         <h1 className="text-5xl lg:text-6xl leading-tight text-black font-sans font-light">Lead Generation</h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-                            Your competitors respond in 5 minutes. You respond in 47 hours. That&apos;s why they&apos;re winning 78% of your leads.
+                            Every visitor is a potential customer. Instant response wins more business. AI agents engage every visitor immediately, 24/7, converting more leads than traditional chatbots.
                         </p>
                         <div className="mt-12 max-w-lg">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
 
                                 <div className="py-4">
-                                    <div className="text-3xl font-bold text-gray-900">89%</div>
-                                    <div className="text-sm text-gray-600 mt-1">of inquiries after 5pm</div>
+                                    <div className="text-3xl font-bold text-gray-900">78%</div>
+                                    <div className="text-sm text-gray-600 mt-1">of sales go to the first responder. <span className="citation-icon"
+                                                                                                                                      data-tooltip="Source: HubSpot Research 2024">ⓘ</span></div>
                                 </div>
 
                                 <div className="py-4 md:border-l md:border-r border-gray-200">
-                                    <div className="text-3xl font-bold text-gray-900">3X</div>
-                                    <div className="text-sm text-gray-600 mt-1">more leads captured</div>
+                                    <div className="text-3xl font-bold text-gray-900">82%</div>
+                                    <div className="text-sm text-gray-600 mt-1">of consumers expect responses within 10 minutes.</div>
                                 </div>
 
                                 <div className="py-4">
-                                    <div className="text-3xl font-bold text-gray-900">$99</div>
-                                    <div className="text-sm text-gray-600 mt-1">vs $3,500/mo employee</div>
+                                    <div className="text-3xl font-bold text-gray-900">391%</div>
+                                    <div className="text-sm text-gray-600 mt-1">more conversions with 1-minute response.</div>
                                 </div>
 
                             </div>
@@ -38,21 +39,21 @@ export function LeadGenerationInsight() {
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    Your competitors respond in 5 minutes. You respond in 47 hours. That&apos;s why they&apos;re winning 78% of your leads.
+                                    The first company to respond typically wins the business. With 35% of inquiries arriving after hours, being available 24/7 becomes a competitive advantage.
                                 </p>
                             </div>
 
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    While you sleep, your competitors&apos; AI is converting your prospects. Every. Single. Night.
+                                    Most website visitors expect quick responses, even outside business hours. When the average response time is 47 hours, there&apos;s a significant gap between customer expectations and reality.
                                 </p>
                             </div>
 
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    Firms responding within 5 minutes are 800% more likely to convert. When did you last respond at midnight?
+                                    Response time directly impacts conversion rates. Companies responding to inquiries within one minute see nearly 4x more conversions than those taking just 30 minutes.
                                 </p>
                             </div>
                         </div>

@@ -7,24 +7,24 @@ export function IntelligenceInsight() {
                         <h1 className="text-5xl lg:text-6xl leading-tight text-black font-sans font-light">Intelligence</h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-                            Your competitors respond in 5 minutes. You respond in 47 hours. That&apos;s why they&apos;re winning 78% of your leads.
+                            Basic chatbots frustrate customers. Intelligent AI agents engage naturally, understand complex questions, and provide personalized solutions that set your business apart from scripted competitors.
                         </p>
                         <div className="mt-12 max-w-lg">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
 
                                 <div className="py-4">
-                                    <div className="text-3xl font-bold text-gray-900">89%</div>
-                                    <div className="text-sm text-gray-600 mt-1">of inquiries after 5pm</div>
+                                    <div className="text-3xl font-bold text-gray-900">56%</div>
+                                    <div className="text-sm text-gray-600 mt-1">of companies see AI driving industry disruption.</div>
                                 </div>
 
                                 <div className="py-4 md:border-l md:border-r border-gray-200">
-                                    <div className="text-3xl font-bold text-gray-900">3X</div>
-                                    <div className="text-sm text-gray-600 mt-1">more leads captured</div>
+                                    <div className="text-3xl font-bold text-gray-900">68%</div>
+                                    <div className="text-sm text-gray-600 mt-1">of consumers expect virtual assistants to match human expertise.</div>
                                 </div>
 
                                 <div className="py-4">
-                                    <div className="text-3xl font-bold text-gray-900">$99</div>
-                                    <div className="text-sm text-gray-600 mt-1">vs $3,500/mo employee</div>
+                                    <div className="text-3xl font-bold text-gray-900">80%</div>
+                                    <div className="text-sm text-gray-600 mt-1">of businesses adopting AI.</div>
                                 </div>
 
                             </div>
@@ -37,21 +37,21 @@ export function IntelligenceInsight() {
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    Stop paying $300/hour experts to answer $3 questions. Start capturing $30,000 clients at 3 AM.
+                                    AI agents have real conversations, not scripted responses. They understand what customers actually need and provide helpful, personalized answers—just like your best employee would.
                                 </p>
                             </div>
 
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    $9,071 SAVED PER PROFESSIONAL ANNUALLY Just in time wasted searching for information. The revenue impact? Exponentially higher.
+                                    Customer expectations for AI have evolved beyond simple scripts. When 68% of consumers expect AI to match expert human knowledge, basic chatbots no longer suffice—intelligent agents become essential.
                                 </p>
                             </div>
 
                             <div className="flex items-start">
                                 <div className="flex-shrink-0 w-1 h-1 bg-gray-400 rounded-full mt-2.5 mr-4"></div>
                                 <p className="text-gray-700 leading-relaxed">
-                                    Firms responding within 5 minutes are 800% more likely to convert. When did you last respond at midnight?
+                                    Industry leaders recognize AI as a competitive necessity. With 80% of companies adopting AI by 2025, businesses without intelligent automation risk falling behind in customer experience and operational efficiency.
                                 </p>
                             </div>
                         </div>
