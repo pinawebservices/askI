@@ -97,21 +97,21 @@ export default function ClientLayoutClient({
                                 icon="📝"
                                 label="Instructions"
                             />
-                            <SidebarLink
-                                href={`/dashboard/${clientId}/analytics`}
-                                icon="📊"
-                                label="Analytics"
-                            />
-                            <SidebarLink
-                                href={`/dashboard/${clientId}/documents`}
-                                icon="📁"
-                                label="Documents"
-                            />
-                            <SidebarLink
-                                href={`/dashboard/${clientId}/training`}
-                                icon="🎯"
-                                label="Training Q&A"
-                            />
+                            {/*<SidebarLink*/}
+                            {/*    href={`/dashboard/${clientId}/analytics`}*/}
+                            {/*    icon="📊"*/}
+                            {/*    label="Analytics"*/}
+                            {/*/>*/}
+                            {/*<SidebarLink*/}
+                            {/*    href={`/dashboard/${clientId}/documents`}*/}
+                            {/*    icon="📁"*/}
+                            {/*    label="Documents"*/}
+                            {/*/>*/}
+                            {/*<SidebarLink*/}
+                            {/*    href={`/dashboard/${clientId}/training`}*/}
+                            {/*    icon="🎯"*/}
+                            {/*    label="Training Q&A"*/}
+                            {/*/>*/}
                             <SidebarLink
                                 href={`/dashboard/${clientId}/settings`}
                                 icon="⚙️"
@@ -130,11 +130,11 @@ export default function ClientLayoutClient({
                                     label="Widget Code"
                                     highlight={true}
                                 />
-                                <SidebarLink
-                                    href={`/dashboard/${clientId}/test`}
-                                    icon="🧪"
-                                    label="Test Chat"
-                                />
+                                {/*<SidebarLink*/}
+                                {/*    href={`/dashboard/${clientId}/test`}*/}
+                                {/*    icon="🧪"*/}
+                                {/*    label="Test Chat"*/}
+                                {/*/>*/}
                             </nav>
                         </div>
                     </div>

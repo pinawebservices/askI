@@ -53,12 +53,12 @@ export default async function ClientDashboard({
                     📝 Instructions
                 </Link>
 
-                <Link
-                    href={`/dashboard/${clientId}/analytics`}
-                    className="p-4 bg-green-100 rounded-lg hover:bg-green-200"
-                >
-                    📊 Analytics
-                </Link>
+                {/*<Link*/}
+                {/*    href={`/dashboard/${clientId}/analytics`}*/}
+                {/*    className="p-4 bg-green-100 rounded-lg hover:bg-green-200"*/}
+                {/*>*/}
+                {/*    📊 Analytics*/}
+                {/*</Link>*/}
             </div>
         </div>
     );

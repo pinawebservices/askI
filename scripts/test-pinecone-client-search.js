@@ -3,7 +3,7 @@
 
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
-import supabase from '../lib/services/supabaseService.js';
+import supabase from '../lib/services/supabase-client.ts';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
