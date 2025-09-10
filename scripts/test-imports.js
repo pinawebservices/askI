@@ -3,7 +3,7 @@ console.log('Testing imports...\n');
 
 // Test Supabase
 try {
-    const { createClient } = await import('../lib/services/supabaseService.js');
+    const { createClient } = await import('../lib/services/supabase-client.ts');
     console.log('✅ Supabase import works');
 } catch (error) {
     console.error('❌ Supabase import failed:', error.message);
