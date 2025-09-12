@@ -1,8 +1,8 @@
 // app/dashboard/[clientId]/layout.tsx
 // Remove 'use client' - this should be a server component since it's fetching data
-import { supabase } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
 import ClientLayoutClient from './ClientLayoutClient';
+import {supabaseAdmin} from "@/lib/supabase-admin";
 
 interface ClientLayoutProps {
     children: React.ReactNode;
@@ -19,7 +19,7 @@ export default async function ClientLayout({
     const { clientId } = await params;
 
     // Fetch client data once for all pages
-    const { data: client, error } = await supabase
+    const { data: client, error } = await supabaseAdmin
         .from('clients')
         .select('*')
         .eq('client_id', clientId)

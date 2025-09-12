@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/services/supabase-client"
+import { supabase } from "@/lib/supabase-client"
 // import type { User, Organization, Client } from '../types/database.ts';
 import type { Database } from '@/types/supabase';
 

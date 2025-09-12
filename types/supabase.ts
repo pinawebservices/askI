@@ -207,6 +207,7 @@ export type Database = {
           id: string
           industry: string | null
           is_active: boolean | null
+          is_pinecone_configured: boolean | null
           notification_email: string | null
           notification_phone: string | null
           notification_preferences: Json | null
@@ -225,6 +226,7 @@ export type Database = {
           id?: string
           industry?: string | null
           is_active?: boolean | null
+          is_pinecone_configured?: boolean | null
           notification_email?: string | null
           notification_phone?: string | null
           notification_preferences?: Json | null
@@ -243,6 +245,7 @@ export type Database = {
           id?: string
           industry?: string | null
           is_active?: boolean | null
+          is_pinecone_configured?: boolean | null
           notification_email?: string | null
           notification_phone?: string | null
           notification_preferences?: Json | null

@@ -38,52 +38,27 @@ export default function SignupPage() {
 
             if (authError) throw authError;
 
-            // 2. After successful signup, create the organization, user, and client records
+            // 2. Call API to create organization (remove the direct database calls)
             if (authData.user) {
-                // Create organization
-                const slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + authData.user.id.substring(0, 8);
-
-                const { data: org, error: orgError } = await supabase
-                    .from('organizations')
-                    .insert({
-                        name: businessName,
-                        slug: slug,
-                        billing_email: email,
-                    })
-                    .select()
-                    .single();
-
-                if (orgError) throw orgError;
-
-                // Create user record
-                const { error: userError } = await supabase
-                    .from('users')
-                    .insert({
-                        id: authData.user.id,
+                const response = await fetch('/api/admin/create-organization', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: authData.user.id,
                         email: email,
-                        first_name: firstName,
-                        last_name: lastName,
-                        organization_id: org.id,
-                        role: 'owner',
-                    });
+                        firstName: firstName,
+                        lastName: lastName,
+                        businessName: businessName,
+                    }),
+                });
 
-                if (userError) throw userError;
+                const data = await response.json();
 
-                // Create client record for the chatbot
-                const clientId = businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + org.id.substring(0, 8);
-
-                const { error: clientError } = await supabase
-                    .from('clients')
-                    .insert({
-                        client_id: clientId,
-                        business_name: businessName,
-                        email: email,
-                        plan_type: 'basic',
-                        is_active: true,
-                        organization_id: org.id,
-                    });
-
-                if (clientError) throw clientError;
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create organization');
+                }
             }
 
             alert('Check your email to confirm your account!');

@@ -2,8 +2,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { supabaseAdmin } from "@/lib/supabase-admin";
+
 
 interface ClientLayoutClientProps {
     children: ReactNode;
@@ -46,6 +48,8 @@ export default function ClientLayoutClient({
                                                client,
                                                clientId
                                            }: ClientLayoutClientProps) {
+    const router = useRouter();
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Top Navigation Bar */}
@@ -74,6 +78,15 @@ export default function ClientLayoutClient({
                                 Plan: {client.plan_type || 'Free'}
                             </span>
                         </div>
+
+                        <button
+                            onClick={ () =>{
+                                router.push('/dashboard/logout');
+                            }}
+                            className="px-4 py-2 text-sm text-red-600 hover:text-red-800"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </div>
