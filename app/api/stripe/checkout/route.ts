@@ -3,6 +3,17 @@ import Stripe from 'stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
+// #FIXME: Suppress the Next.js 15 cookies warning - known issue with auth-helpers
+if (typeof window === 'undefined') {
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+        if (args[0]?.includes?.('cookies()') || args[0]?.includes?.('sync-dynamic-apis')) {
+            return;
+        }
+        originalWarn(...args);
+    };
+}
+
 const PRICE_IDS = {
     basic: process.env.STRIPE_PRICE_BASIC!,
     pro: process.env.STRIPE_PRICE_PRO!,

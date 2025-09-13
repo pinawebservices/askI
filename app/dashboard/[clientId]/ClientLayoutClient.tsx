@@ -75,7 +75,7 @@ export default function ClientLayoutClient({
                                 {client.is_active ? '✅ Active' : '❌ Inactive'}
                             </span>
                             <span className="text-sm text-gray-500">
-                                Plan: {client.plan_type || 'Free'}
+                                Plan: {client.plan_type || 'none'}
                             </span>
                         </div>
 
