@@ -2,25 +2,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import type { Database } from '@/types/supabase';
 
-interface ClientInstructions {
-    id?: string;
-    client_id: string;
-    business_name: string;
-    business_type?: string;
-    tone_style: string;
-    communication_style: string;
-    formality_level: string;
-    special_instructions?: string;
-    formatting_rules?: string;
-    lead_capture_process?: string;
-    response_time: string;
-    created_at?: string;
-    updated_at?: string;
-}
+type ClientInstructions = Database['public']['Tables']['client_instructions']['Row'];
+
+
 
 export default function InstructionsPage() {
     const params = useParams();
@@ -30,16 +18,16 @@ export default function InstructionsPage() {
     // Use a ref to prevent multiple fetches
     const hasFetchedRef = useRef(false);
 
-    const [instructions, setInstructions] = useState<ClientInstructions>({
+    const [instructions, setInstructions] = useState<Partial<ClientInstructions>>({
         client_id: clientId,
         business_name: '',
-        business_type: '',
+        business_type: null,
         tone_style: 'friendly',
         communication_style: 'conversational',
         formality_level: 'professional',
-        special_instructions: '',
-        formatting_rules: '',
-        lead_capture_process: '',
+        special_instructions: null,
+        formatting_rules: null,
+        lead_capture_process: null,
         response_time: '2 hours'
     });
 
@@ -59,7 +47,7 @@ export default function InstructionsPage() {
         try {
             console.log('Loading instructions for:', clientId);
 
-            const { data, error: fetchError } = await supabase
+            const { data, error: fetchError } = await supabaseAdmin
                 .from('client_instructions')
                 .select('*')
                 .eq('client_id', clientId)
@@ -97,15 +85,13 @@ export default function InstructionsPage() {
                 ...instructions,
                 client_id: clientId,
                 updated_at: new Date().toISOString()
-            };
+            } as Database['public']['Tables']['client_instructions']['Insert'];
 
             console.log('Saving instructions:', dataToSave);
 
-            const { data, error: saveError } = await supabase
+            const { data, error: saveError } = await supabaseAdmin
                 .from('client_instructions')
-                .upsert(dataToSave, {
-                    onConflict: 'client_id'
-                })
+                .upsert( dataToSave )
                 .select()
                 .single();
 

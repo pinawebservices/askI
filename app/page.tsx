@@ -3,7 +3,7 @@ import { FinHero } from "@/components/landing-page/fin-hero"
 import { ChatWidget } from "@/components/landing-page/chat-widget"
 import React from "react";
 import {FeaturesSection} from "@/components/landing-page/features-section";
-import {PricingSection} from "@/components/landing-page/pricing-section";
+import { PricingCards } from "@/components/landing-page/pricing-cards";
 import {TestimonialsSection} from "@/components/landing-page/testimonials-section";
 import { LeadGenerationInsight} from "@/components/landing-page/insights-lead-generation";
 import {SavingsInsight} from "@/components/landing-page/insight-savings";
@@ -13,6 +13,7 @@ import {IntelligenceInsight} from "@/components/landing-page/insights-intelligen
 import {CtaSection} from "@/components/landing-page/cta-section";
 import ChatbotProvider from "@/components/ai-chatbot-demo";
 import {FinHeader} from "@/components/landing-page/fin-header";
+import {FinFooter} from "@/components/landing-page/footer";
 
 export default function HomePage() {
   return (
@@ -44,8 +45,9 @@ export default function HomePage() {
                   <IntegrationInsight />
                   <Divider />
                   <IntelligenceInsight />
-                  {/*<PricingSection />*/}
+                  <PricingCards mode="landing" />
                   <CtaSection />
+                  <FinFooter />
               </main>
                {/*AI Chatbot Widget -- DEV */}
               <script
