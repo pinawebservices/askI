@@ -3,20 +3,25 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Client } from '@/types/database';
 import {cookies} from "next/headers";
-import { PricingCards } from "@/components/landing-page/pricing-cards";
-import PricingCardsWrapper from "@/app/pricing-cards-wrapper";
+import PricingCardsWrapper from "@/app/dashboard/components/pricing-cards-wrapper";
+import WelcomeAboard from "@/app/dashboard/components/welcome-aboard";
 
 interface ClientDashboardProps {
     params: Promise<{  // Note: params is a Promise in Next.js 15!
         clientId: string;
     }>;
+    searchParams: Promise<{ session_id?: string; success?: string }>;
 }
 
+
 export default async function ClientDashboard({
-                                                  params
+                                                  params, searchParams
                                               }: ClientDashboardProps) {
     // AWAIT the params!
     const { clientId } = await params;
+    const search = await searchParams;
+    const isSuccess = search?.success === 'true' || !!search?.session_id;
+
     const supabaseServerClient = createServerComponentClient({ cookies });
 
     // Now you can use clientId
@@ -38,6 +43,12 @@ export default async function ClientDashboard({
             );
         }
         notFound();
+    }
+
+    if (isSuccess) {
+        return (
+            <WelcomeAboard clientId={clientId} />
+        );
     }
 
 // Check if they have an active subscription

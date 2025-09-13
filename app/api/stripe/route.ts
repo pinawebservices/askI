@@ -104,10 +104,7 @@ export async function POST(req: NextRequest) {
                     organization_id: userOrgData.organization_id,
                     plan_type: planType,
                 }
-            },
-            // Optional: Save payment method for future use
-            payment_method_collection: 'if_required',
-            customer_creation: customerId ? undefined : 'always',
+            }
         });
 
         return NextResponse.json({ sessionId: session.id, url: session.url });
