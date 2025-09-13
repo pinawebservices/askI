@@ -13,6 +13,17 @@ interface ClientDashboardProps {
     searchParams: Promise<{ session_id?: string; success?: string }>;
 }
 
+// #FIXME: Suppress the Next.js 15 cookies warning - known issue with auth-helpers
+if (typeof window === 'undefined') {
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+        if (args[0]?.includes?.('cookies()') || args[0]?.includes?.('sync-dynamic-apis')) {
+            return;
+        }
+        originalWarn(...args);
+    };
+}
+
 
 export default async function ClientDashboard({
                                                   params, searchParams
