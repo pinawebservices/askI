@@ -21,7 +21,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create the client even if variables are missing (will fail gracefully)
-export const supabase = createClient(
+export const supabaseAdmin = createClient(
     supabaseUrl || '',
     supabaseAnonKey || ''
 )

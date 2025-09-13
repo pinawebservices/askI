@@ -19,6 +19,26 @@ export async function middleware(req: NextRequest) {
 
     // If has session and trying to access login/signup, redirect to dashboard
     if (session && (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup')) {
+
+        const { data: userData } = await supabase
+            .from('users')
+            .select('organization_id')
+            .eq('id', session.user.id)
+            .single();
+
+        if (userData) {
+            const { data: client } = await supabase
+                .from('clients')
+                .select('client_id')
+                .eq('organization_id', userData.organization_id)
+                .single();
+
+            if (client) {
+                // Redirect to their specific dashboard
+                return NextResponse.redirect(new URL(`/dashboard/${client.client_id}`, req.url));
+            }
+        }
+
         const redirectUrl = new URL('/dashboard', req.url);
         return NextResponse.redirect(redirectUrl);
     }

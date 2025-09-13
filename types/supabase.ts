@@ -151,7 +151,6 @@ export type Database = {
           business_type: string | null
           client_id: string
           communication_style: string | null
-          conversation_guidelines: Json | null
           created_at: string | null
           formality_level: string | null
           formatting_rules: string | null
@@ -167,7 +166,6 @@ export type Database = {
           business_type?: string | null
           client_id: string
           communication_style?: string | null
-          conversation_guidelines?: Json | null
           created_at?: string | null
           formality_level?: string | null
           formatting_rules?: string | null
@@ -183,7 +181,6 @@ export type Database = {
           business_type?: string | null
           client_id?: string
           communication_style?: string | null
-          conversation_guidelines?: Json | null
           created_at?: string | null
           formality_level?: string | null
           formatting_rules?: string | null
@@ -347,6 +344,201 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      payment_history: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          id: string
+          organization_id: string | null
+          status: string | null
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          id?: string
+          organization_id?: string | null
+          status?: string | null
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          id?: string
+          organization_id?: string | null
+          status?: string | null
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_customers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          organization_id: string
+          stripe_customer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          organization_id: string
+          stripe_customer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          organization_id?: string
+          stripe_customer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          organization_id: string
+          plan_type: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string
+          trial_end: string | null
+          trial_start: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          organization_id: string
+          plan_type?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id: string
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          organization_id?: string
+          plan_type?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_subscriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stripe_subscriptions_stripe_customer_id_fkey"
+            columns: ["stripe_customer_id"]
+            isOneToOne: false
+            referencedRelation: "stripe_customers"
+            referencedColumns: ["stripe_customer_id"]
+          },
+        ]
+      }
+      subscription_history: {
+        Row: {
+          created_at: string | null
+          ended_at: string | null
+          event_type: string | null
+          id: string
+          metadata: Json | null
+          organization_id: string | null
+          plan_type: string | null
+          started_at: string | null
+          status: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          ended_at?: string | null
+          event_type?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          plan_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          ended_at?: string | null
+          event_type?: string | null
+          id?: string
+          metadata?: Json | null
+          organization_id?: string | null
+          plan_type?: string | null
+          started_at?: string | null
+          status?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_pairs: {
         Row: {

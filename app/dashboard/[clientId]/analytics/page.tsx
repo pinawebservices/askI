@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Client } from '@/types/database';
@@ -13,7 +13,7 @@ export default async function ClientDashboard({ params }: ClientDashboardProps) 
     const { clientId } = await params;
 
     // Fetch client data with type safety
-    const { data: client, error } = await supabase
+    const { data: client, error } = await supabaseAdmin
         .from('clients')
         .select('*')
         .eq('client_id', clientId)
@@ -24,7 +24,7 @@ export default async function ClientDashboard({ params }: ClientDashboardProps) 
     }
 
     // Calculate some stats (example)
-    const { count: messageCount } = await supabase
+    const { count: messageCount } = await supabaseAdmin
         .from('chat_conversations')
         .select('*', { count: 'exact', head: true })
         .eq('client_id', clientId);
