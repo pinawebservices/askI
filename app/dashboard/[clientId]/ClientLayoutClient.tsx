@@ -130,6 +130,11 @@ export default function ClientLayoutClient({
                                 icon="⚙️"
                                 label="Settings"
                             />
+                            <SidebarLink
+                                href={`/dashboard/${clientId}/subscription`}
+                                icon="💳"
+                                label="Manage Subscription"
+                            />
                         </nav>
 
                         <div className="mt-8">
