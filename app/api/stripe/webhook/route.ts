@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
                     })
                     .eq('stripe_subscription_id', subscription.id);
 
-                console.log('Subscription updated:', subscription.id);
+                console.log(`Subscription ${subscription.id} updated to status: ${subscription.status}`);
                 break;
             }
 
