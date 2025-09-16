@@ -492,9 +492,9 @@ export type Database = {
       }
       subscription_history: {
         Row: {
+          action: string | null
           created_at: string | null
           ended_at: string | null
-          event_type: string | null
           id: string
           metadata: Json | null
           organization_id: string | null
@@ -505,9 +505,9 @@ export type Database = {
           stripe_subscription_id: string | null
         }
         Insert: {
+          action?: string | null
           created_at?: string | null
           ended_at?: string | null
-          event_type?: string | null
           id?: string
           metadata?: Json | null
           organization_id?: string | null
@@ -518,9 +518,9 @@ export type Database = {
           stripe_subscription_id?: string | null
         }
         Update: {
+          action?: string | null
           created_at?: string | null
           ended_at?: string | null
-          event_type?: string | null
           id?: string
           metadata?: Json | null
           organization_id?: string | null

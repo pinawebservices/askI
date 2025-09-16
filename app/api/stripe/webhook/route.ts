@@ -28,9 +28,6 @@ export async function POST(req: NextRequest) {
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object as Stripe.Checkout.Session;
-                console.log('Checkout completed for session:', session.id);
-                console.log('Session metadata:', session.metadata);
-                console.log('Subscription ID:', session.subscription);
 
                 // Get the subscription details
                 if (session.subscription) {
@@ -38,9 +35,6 @@ export async function POST(req: NextRequest) {
                         const subscription = await stripe.subscriptions.retrieve(
                             session.subscription as string
                         );
-
-                        console.log('Retrieved subscription:', subscription.id);
-                        console.log('Subscription status:', subscription.status);
 
                         const {organization_id, plan_type} = session.metadata!;
 
@@ -61,24 +55,44 @@ export async function POST(req: NextRequest) {
                                 : null,
                         };
 
-                        console.log('Inserting data:', insertData);
-
                         // Save subscription to database
-                        const { data, error } = await supabaseAdmin
+                        const { data: subData, error: subError } = await supabaseAdmin
                             .from('stripe_subscriptions')
                             .insert( insertData );
 
-                        if (error) {
-                            console.error('Database insert error:', error);
+                        if (subError) {
+                            console.error('subData insert error:', subError);
                         } else {
-                            console.log('Successfully inserted subscription:', data);
+                            console.log('Successfully inserted into stripe_subscriptions');
                         }
 
-                        // Update organization plan_type
+                        // insert subscription history
                         await supabaseAdmin
+                            .from('subscription_history')
+                            .insert({
+                                organization_id: insertData.organization_id,
+                                stripe_subscription_id: insertData.stripe_subscription_id,
+                                action: 'created',
+                                plan_type: insertData.plan_type,
+                                status: insertData.status,
+                                metadata: {
+                                    customer_id: session.customer?.toString(),
+                                    trial_end: insertData.trial_end,
+                                    mode: session.mode
+                                }
+                            });
+
+                        // Update organization plan_type
+                        const { data: organizationsData, error: subHisError } = await supabaseAdmin
                             .from('organizations')
                             .update({plan_type})
                             .eq('id', organization_id);
+
+                        if (organizationsData) {
+                            console.error('organizations insert error:', subHisError);
+                        } else {
+                            console.log('Successfully updated organizations to plan type: ', plan_type);
+                        }
 
 
                     } catch (err) {
@@ -90,35 +104,120 @@ export async function POST(req: NextRequest) {
 
             case 'customer.subscription.updated': {
                 const subscription = event.data.object as Stripe.Subscription;
+                const previousAttributes = event.data.previous_attributes as any;
 
-                await supabaseAdmin
+                // Build the update object dynamically based on what changed
+                const updateData: any = {
+                    status: subscription.status,
+                    current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
+                    stripe_price_id: subscription.items.data[0].price.id,  // ADD THIS
+                };
+
+                // If the price changed, we need to determine the new plan_type
+                if (previousAttributes?.items.data[0].price.id) {
+                    // Map price ID to plan type (you'll need to define this mapping)
+                    const priceIdToPlanType: Record<string, string> = {
+                        [process.env.STRIPE_PRICE_BASIC!]: 'basic',
+                        [process.env.STRIPE_PRICE_PRO!]: 'pro',
+                        [process.env.STRIPE_PRICE_PREMIUM!]: 'premium',
+                    };
+
+                    const newPlanType = priceIdToPlanType[subscription.items.data[0].price.id];
+                    if (newPlanType) {
+                        updateData.plan_type = newPlanType;  // ADD THIS
+                    }
+                }
+
+                const { data: subData, error: subError } = await supabaseAdmin
                     .from('stripe_subscriptions')
-                    .update({
-                        status: subscription.status,
-                        current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
-                    })
-                    .eq('stripe_subscription_id', subscription.id);
+                    .update(updateData)
+                    .eq('stripe_subscription_id', subscription.id)
+                    .select()
+                    .single();
 
-                console.log(`Subscription ${subscription.id} updated to status: ${subscription.status}`);
+                if (subError ) {
+                    console.error('subData update error:', subError);
+                } else if (!subData) {
+                    console.error('subData update: no records returned');
+                } else {
+                    console.log('Successfully updated stripe_subscriptions');
+                }
+
+                // Log to subscription_history
+                await supabaseAdmin
+                    .from('subscription_history')
+                    .insert({
+                        organization_id: subData?.organization_id,
+                        stripe_subscription_id: subscription.id,
+                        stripe_price_id: subscription.items.data[0].price.id,
+                        action: previousAttributes?.items ? 'plan_changed' : 'status_changed',
+                        plan_type: subData?.plan_type,
+                        status: subscription.status,
+                        metadata: {
+                            previous_attributes: previousAttributes,
+                            changed_fields: Object.keys(previousAttributes || {})
+                        }
+                    });
+
+                console.log(`Subscription updated successfully.`);
                 break;
             }
 
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object as Stripe.Subscription;
 
-                await supabaseAdmin
+                const { data: subData, error: subError } = await supabaseAdmin
                     .from('stripe_subscriptions')
-                    .update({ status: 'cancelled' })
-                    .eq('stripe_subscription_id', subscription.id);
+                    .select('organization_id, plan_type')
+                    .eq('stripe_subscription_id', subscription.id)
+                    .single();
 
-                console.log('Subscription cancelled:', subscription.id);
+                if (subError) {
+                    console.error('subData delete error:', subError);
+                } else if (!subData) {
+                    console.error('subData delete: no records returned');
+                }
 
-                // Reset organization to free plan
-                const { organization_id } = subscription.metadata;
-                await supabaseAdmin
-                    .from('organizations')
-                    .update({ plan_type: 'none' })
-                    .eq('id', organization_id);
+                if (subData) {
+
+                    const { error: supDeleteErr } = await supabaseAdmin
+                        .from('stripe_subscriptions')
+                        .update({status: 'cancelled'})
+                        .eq('stripe_subscription_id', subscription.id);
+
+                    if (supDeleteErr) {
+                        console.error('Error cancelling subscription stripe_subscriptions:', supDeleteErr);
+                    }
+
+                    const { error: subHisErr } = await supabaseAdmin
+                        .from('subscription_history')
+                        .insert({
+                            organization_id: subData.organization_id,
+                            stripe_subscription_id: subscription.id,
+                            stripe_price_id: subscription.items.data[0]?.price.id || null,
+                            action: 'cancelled',  // was event_type
+                            plan_type: subData.plan_type,
+                            status: 'cancelled',
+                            metadata: JSON.parse(JSON.stringify({
+                                cancellation_details: subscription.cancellation_details,
+                                cancelled_at: subscription.canceled_at
+                            }))
+                        });
+
+                    // Reset organization to free plan
+                    const { organization_id } = subscription.metadata;
+
+                    const { error: orgDeleteErr } = await supabaseAdmin
+                        .from('organizations')
+                        .update({plan_type: 'none'})
+                        .eq('id', organization_id);
+
+                    if (orgDeleteErr) {
+                        console.error('Error resetting organization plan type:', orgDeleteErr);
+                    }
+
+                    console.log('Organization plan type updated');
+                }
 
                 break;
             }
