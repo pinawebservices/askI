@@ -1,7 +1,7 @@
 // app/api/chat/route.js
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
-import { supabaseAdmin } from '@/lib/supabase-admin.js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import validator from 'validator';
 import { IndustryConfig, loadIndustryConfigs } from '@/lib/industries';
 import {sendLeadNotificationEmail} from "@/lib/services/notifications/emailNotifications.js";
