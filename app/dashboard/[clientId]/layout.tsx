@@ -3,6 +3,7 @@
 import { notFound } from 'next/navigation';
 import ClientLayoutClient from './ClientLayoutClient';
 import {supabaseAdmin} from "@/lib/supabase-admin";
+import {SubscriptionProvider} from "@/app/contexts/subscription-context";
 
 interface ClientLayoutProps {
     children: React.ReactNode;
@@ -17,16 +18,19 @@ export default async function ClientLayout({
                                            }: ClientLayoutProps) {
     // AWAIT the params properly for Next.js 15
     const { clientId } = await params;
+    if (!clientId) {
+        return notFound();
+    }
 
     // Fetch client data once for all pages
     const { data: client, error } = await supabaseAdmin
         .from('clients')
-        .select('*')
+        .select('client_id, organization_id')
         .eq('client_id', clientId)
         .single();
 
     if (error || !client) {
-        // For development/testing without database
+        // #FIXME: For development/testing without database
         return (
             <div className="min-h-screen bg-gray-50">
                 <div className="p-6">
@@ -39,10 +43,26 @@ export default async function ClientLayout({
         );
     }
 
+    // Fetch subscription data
+    const { data: subscription } = await supabaseAdmin
+        .from('stripe_subscriptions')
+        .select('*')
+        .eq('organization_id', clientId)
+        .single();
+
+    // Default to 'none' if no subscription exists
+    const planType = (subscription?.plan_type as 'none' | 'basic' | 'pro' | 'premium') || 'none';
+    const status = (subscription?.status as 'trialing' | 'active' | 'past_due' | 'cancelled') || null;
+
     // Pass the data to a client component for interactivity
     return (
-        <ClientLayoutClient client={client} clientId={clientId}>
+        <SubscriptionProvider planType={planType} status={status}>
+        <ClientLayoutClient
+            client={client}
+            clientId={clientId}
+        >
             {children}
         </ClientLayoutClient>
+        </SubscriptionProvider>
     );
 }

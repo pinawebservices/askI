@@ -106,6 +106,10 @@ export async function POST(req: NextRequest) {
                 const subscription = event.data.object as Stripe.Subscription;
                 const previousAttributes = event.data.previous_attributes as any;
 
+                // Check what changed
+                const statusChanged = previousAttributes?.status !== undefined;
+                const planChanged = previousAttributes?.items?.data[0]?.price?.id !== undefined;
+
                 // Build the update object dynamically based on what changed
                 const updateData: any = {
                     status: subscription.status,
@@ -114,7 +118,7 @@ export async function POST(req: NextRequest) {
                 };
 
                 // If the price changed, we need to determine the new plan_type
-                if (previousAttributes?.items.data[0].price.id) {
+                if (planChanged) {
                     // Map price ID to plan type (you'll need to define this mapping)
                     const priceIdToPlanType: Record<string, string> = {
                         [process.env.STRIPE_PRICE_BASIC!]: 'basic',
@@ -144,20 +148,40 @@ export async function POST(req: NextRequest) {
                 }
 
                 // Log to subscription_history
-                await supabaseAdmin
-                    .from('subscription_history')
-                    .insert({
-                        organization_id: subData?.organization_id,
-                        stripe_subscription_id: subscription.id,
-                        stripe_price_id: subscription.items.data[0].price.id,
-                        action: previousAttributes?.items ? 'plan_changed' : 'status_changed',
-                        plan_type: subData?.plan_type,
+                if (statusChanged || planChanged) {
+                    await supabaseAdmin
+                        .from('subscription_history')
+                        .insert({
+                            organization_id: subData?.organization_id,
+                            stripe_subscription_id: subscription.id,
+                            stripe_price_id: subscription.items.data[0].price.id,
+                            action: previousAttributes?.items?.data?.[0]?.price?.id ? 'plan_changed' : 'status_changed',
+                            plan_type: subData?.plan_type,
+                            status: subscription.status,
+                            metadata: {
+                                previous_attributes: previousAttributes,
+                                changed_fields: Object.keys(previousAttributes || {})
+                            }
+                        });
+
+                    console.log('✅ Subscription updated:', {
                         status: subscription.status,
-                        metadata: {
-                            previous_attributes: previousAttributes,
-                            changed_fields: Object.keys(previousAttributes || {})
-                        }
+                        previous: previousAttributes?.status,
+                        plan_changed: planChanged
                     });
+                }
+
+                // Update organization if plan changed
+                if (planChanged && subData) {
+                    const { error: orgError } = await supabaseAdmin
+                        .from('organizations')
+                        .update({ plan_type: updateData.plan_type })
+                        .eq('id', subData.organization_id);
+
+                    if (orgError) {
+                        console.error('Error updating organization plan change:', orgError);
+                    }
+                }
 
                 console.log(`Subscription updated successfully.`);
                 break;
@@ -172,11 +196,13 @@ export async function POST(req: NextRequest) {
                     .eq('stripe_subscription_id', subscription.id)
                     .single();
 
-                if (subError) {
-                    console.error('subData delete error:', subError);
-                } else if (!subData) {
+
+                if (!subData) {
                     console.error('subData delete: no records returned');
+                } else if (subError) {
+                    console.error('subData delete error:', subError);
                 }
+
 
                 if (subData) {
 
@@ -195,7 +221,7 @@ export async function POST(req: NextRequest) {
                             organization_id: subData.organization_id,
                             stripe_subscription_id: subscription.id,
                             stripe_price_id: subscription.items.data[0]?.price.id || null,
-                            action: 'cancelled',  // was event_type
+                            action: 'subscription cancelled',  // was event_type
                             plan_type: subData.plan_type,
                             status: 'cancelled',
                             metadata: JSON.parse(JSON.stringify({
@@ -219,6 +245,30 @@ export async function POST(req: NextRequest) {
                     console.log('Organization plan type updated');
                 }
 
+                break;
+            }
+
+            case 'customer.subscription.trial_will_end': {
+                const subscription = event.data.object as Stripe.Subscription;
+
+                // Send reminder email 3 days before trial ends
+                console.log('Trial ending soon for subscription:', subscription.id);
+
+                // TODO: Send email notification to customer
+                // You could use Resend or your email service here
+
+                await supabaseAdmin
+                    .from('subscription_history')
+                    .insert({
+                        organization_id: subscription.metadata.organization_id,
+                        stripe_subscription_id: subscription.id,
+                        action: 'trial_ending_soon',
+                        status: subscription.status,
+                        metadata: {
+                            trial_end: subscription.trial_end,
+                            days_remaining: 3
+                        }
+                    });
                 break;
             }
         }
