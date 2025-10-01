@@ -2,13 +2,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { supabase } from '@/lib/supabase-client';
 import { useRouter, useParams } from 'next/navigation';
 import type { Database } from '@/types/supabase';
 
 type ClientInstructions = Database['public']['Tables']['client_instructions']['Row'];
-
-
 
 export default function InstructionsPage() {
     const params = useParams();
@@ -35,6 +33,9 @@ export default function InstructionsPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
     useEffect(() => {
         // Prevent multiple fetches
         if (hasFetchedRef.current || !clientId) return;
@@ -47,7 +48,7 @@ export default function InstructionsPage() {
         try {
             console.log('Loading instructions for:', clientId);
 
-            const { data, error: fetchError } = await supabaseAdmin
+            const { data, error: fetchError } = await supabase
                 .from('client_instructions')
                 .select('*')
                 .eq('client_id', clientId)
@@ -81,17 +82,21 @@ export default function InstructionsPage() {
                 return;
             }
 
-            const dataToSave = {
-                ...instructions,
-                client_id: clientId,
-                updated_at: new Date().toISOString()
-            } as Database['public']['Tables']['client_instructions']['Insert'];
-
-            console.log('Saving instructions:', dataToSave);
-
-            const { data, error: saveError } = await supabaseAdmin
+            const { data: savedData, error: saveError } = await supabase
                 .from('client_instructions')
-                .upsert( dataToSave )
+                .upsert(
+                    {
+                        client_id: clientId,
+                        business_name: instructions.business_name,
+                        business_type: instructions.business_type || null,
+                        tone_style: instructions.tone_style || null,
+                        communication_style: instructions.communication_style || null,
+                        formality_level: instructions.formality_level || null,
+                        special_instructions: instructions.special_instructions || null,
+                        formatting_rules: instructions.formatting_rules || null,
+                        lead_capture_process: instructions.lead_capture_process || null,
+                        response_time: instructions.response_time || null
+                    } as any, { onConflict: 'client_id' })
                 .select()
                 .single();
 
@@ -100,12 +105,48 @@ export default function InstructionsPage() {
                 throw saveError;
             }
 
-            console.log('Saved successfully:', data);
-            if (data) {
-                setInstructions(data);
+            // Check if Pinecone needs to be configured
+            const { data: pineconeClientData, error: pineconeClientError } = await supabase
+                .from('clients')
+                .select('is_pinecone_configured')
+                .eq('client_id', clientId)
+                .single() as { data: { is_pinecone_configured: boolean | null } | null, error: any };
+
+            if (pineconeClientError) {
+                console.error('Error fetching Pinecone client data:', pineconeClientError);
+                throw pineconeClientError;
+            }
+                console.log('Configuring Pinecone for the first time...');
+
+                // Call the Pinecone setup API
+                const response = await fetch('/api/admin/setup-client-pinecone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ clientId,
+                        forceUpdate: pineconeClientData?.is_pinecone_configured || false }),
+                });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.action === 'created') {
+                    setSuccessMessage('Instructions saved and AI agent activated!');
+                } else if (result.action === 'updated') {
+                    setSuccessMessage('Instructions updated and AI knowledge refreshed!');
+                } else {
+                    setSuccessMessage('Instructions saved successfully!');
+                }
+            } else {
+                setWarningMessage('Instructions saved, but AI update failed.');
             }
 
-            alert('Instructions saved successfully!');
+
+            console.log('Saved successfully:', savedData);
+            if (savedData) {
+                setInstructions(savedData);
+            }
+
         } catch (err) {
             console.error('Error saving:', err);
             setError(err instanceof Error ? err.message : 'Failed to save instructions');
@@ -120,6 +161,29 @@ export default function InstructionsPage() {
             [field]: value
         }));
     };
+
+    async function retryPineconeSetup() {
+        setWarningMessage(null);
+        setSuccessMessage(null);
+
+        try {
+            const response = await fetch('/api/admin/setup-client-pinecone', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ clientId }),
+            });
+
+            if (response.ok) {
+                setSuccessMessage('AI agent activated successfully!');
+            } else {
+                setWarningMessage('AI agent setup failed again. Please contact support.');
+            }
+        } catch (err) {
+            setWarningMessage('Failed to activate AI agent. Please try again.');
+        }
+    }
 
     // Show loading state with the spinner
     if (loading) {
@@ -156,17 +220,44 @@ export default function InstructionsPage() {
         <div className="max-w-4xl mx-auto">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold mb-2">
-                    Chatbot Instructions
+                    AI Agent Instructions
                 </h1>
-                <p className="text-gray-600">
-                    Configure how your chatbot responds to customers for <strong>{clientId}</strong>
-                </p>
-            </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
+                {/* Success Message */}
+                {successMessage && (
+                    <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+                        <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <p className="text-green-800">{successMessage}</p>
+                    </div>
+                )}
+
+                {/* Warning Message */}
+                {warningMessage && (
+                    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div className="flex items-center">
+                            <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <p className="text-yellow-800">{warningMessage}</p>
+                        </div>
+                        <button
+                            onClick={retryPineconeSetup}
+                            className="mt-2 ml-7 text-sm text-yellow-600 underline hover:text-yellow-800"
+                        >
+                            Retry AI Agent Setup
+                        </button>
+                    </div>
+                )}
+
+                {/* Error Message */}
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-                        {error}
+                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+                        <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <p className="text-red-800">{error}</p>
                     </div>
                 )}
 
@@ -305,33 +396,33 @@ export default function InstructionsPage() {
                         />
                     </div>
 
-                    {/* Formatting Rules */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Response Formatting Rules
-                        </label>
-                        <textarea
-                            value={instructions.formatting_rules || ''}
-                            onChange={(e) => handleInputChange('formatting_rules', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Example: Keep initial responses to 2-3 sentences. Use bullet points for service lists. Include emojis sparingly for friendliness."
-                            rows={3}
-                        />
-                    </div>
+                    {/*/!* Formatting Rules *!/*/}
+                    {/*<div>*/}
+                    {/*    <label className="block text-sm font-medium text-gray-700 mb-2">*/}
+                    {/*        Response Formatting Rules*/}
+                    {/*    </label>*/}
+                    {/*    <textarea*/}
+                    {/*        value={instructions.formatting_rules || ''}*/}
+                    {/*        onChange={(e) => handleInputChange('formatting_rules', e.target.value)}*/}
+                    {/*        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"*/}
+                    {/*        placeholder="Example: Keep initial responses to 2-3 sentences. Use bullet points for service lists. Include emojis sparingly for friendliness."*/}
+                    {/*        rows={3}*/}
+                    {/*    />*/}
+                    {/*</div>*/}
 
-                    {/* Lead Capture Process */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Lead Capture Process
-                        </label>
-                        <textarea
-                            value={instructions.lead_capture_process || ''}
-                            onChange={(e) => handleInputChange('lead_capture_process', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Example: After answering their initial question, ask if they'd like to schedule a consultation. Collect name, email, and phone number. Mention that someone will reach out within 2 hours."
-                            rows={3}
-                        />
-                    </div>
+                    {/*/!* Lead Capture Process *!/*/}
+                    {/*<div>*/}
+                    {/*    <label className="block text-sm font-medium text-gray-700 mb-2">*/}
+                    {/*        Lead Capture Process*/}
+                    {/*    </label>*/}
+                    {/*    <textarea*/}
+                    {/*        value={instructions.lead_capture_process || ''}*/}
+                    {/*        onChange={(e) => handleInputChange('lead_capture_process', e.target.value)}*/}
+                    {/*        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"*/}
+                    {/*        placeholder="Example: After answering their initial question, ask if they'd like to schedule a consultation. Collect name, email, and phone number. Mention that someone will reach out within 2 hours."*/}
+                    {/*        rows={3}*/}
+                    {/*    />*/}
+                    {/*</div>*/}
 
                     {/* Action Buttons */}
                     <div className="flex gap-4 pt-6 border-t">

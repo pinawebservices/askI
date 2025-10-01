@@ -44,11 +44,16 @@ export default async function ClientLayout({
     }
 
     // Fetch subscription data
-    const { data: subscription } = await supabaseAdmin
-        .from('stripe_subscriptions')
-        .select('*')
-        .eq('organization_id', clientId)
-        .single();
+// Fetch subscription data only if organization_id exists
+    let subscription = null;
+    if (client.organization_id) {
+        const { data } = await supabaseAdmin
+            .from('stripe_subscriptions')
+            .select('*')
+            .eq('organization_id', client.organization_id)
+            .single();
+        subscription = data;
+    }
 
     // Default to 'none' if no subscription exists
     const planType = (subscription?.plan_type as 'none' | 'basic' | 'pro' | 'premium') || 'none';
