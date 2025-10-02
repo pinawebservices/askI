@@ -1,11 +1,11 @@
 // middleware.ts
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
     const res = NextResponse.next();
-    const supabase = createMiddlewareClient({ req, res });
+    const supabase = createClient(req, res);
 
     const {
         data: { session },
@@ -26,7 +26,7 @@ export async function middleware(req: NextRequest) {
             .eq('id', session.user.id)
             .single();
 
-        if (userData) {
+        if (userData?.organization_id) {
             const { data: client } = await supabase
                 .from('clients')
                 .select('client_id')

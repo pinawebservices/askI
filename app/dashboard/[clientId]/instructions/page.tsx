@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import { createClient } from '@/lib/supabase-client';
 import { useRouter, useParams } from 'next/navigation';
 import type { Database } from '@/types/supabase';
 
@@ -12,6 +12,8 @@ export default function InstructionsPage() {
     const params = useParams();
     const clientId = params.clientId as string;
     const router = useRouter();
+
+    const supabase = createClient();
 
     // Use a ref to prevent multiple fetches
     const hasFetchedRef = useRef(false);
