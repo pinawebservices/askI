@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server-client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
     try {
-        const supabase = createRouteHandlerClient({ cookies });
+        const supabase = await createClient();
 
         // Get the current user
         const { data: { user } } = await supabase.auth.getUser();
@@ -16,13 +15,22 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get the user's stripe customer ID
+        // Get the user's organization_id first
+        const { data: userData } = await supabase
+            .from('users')
+            .select('organization_id')
+            .eq('id', user.id)
+            .single();
+
+        if (!userData?.organization_id) {
+            return NextResponse.json({ error: 'User organization not found' }, { status: 404 });
+        }
+
+        // Then get the stripe customer ID using the organization_id
         const { data: customer } = await supabase
             .from('stripe_customers')
             .select('stripe_customer_id')
-            .eq('organization_id',
-                (await supabase.from('users').select('organization_id').eq('id', user.id).single()).data?.organization_id
-            )
+            .eq('organization_id', userData.organization_id)
             .single();
 
         if (!customer?.stripe_customer_id) {

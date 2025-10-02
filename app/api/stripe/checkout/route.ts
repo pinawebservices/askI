@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-
-// #FIXME: Suppress the Next.js 15 cookies warning - known issue with auth-helpers
-if (typeof window === 'undefined') {
-    const originalWarn = console.warn;
-    console.warn = (...args) => {
-        if (args[0]?.includes?.('cookies()') || args[0]?.includes?.('sync-dynamic-apis')) {
-            return;
-        }
-        originalWarn(...args);
-    };
-}
+import { createClient } from '@/lib/supabase/server-client';
 
 const PRICE_IDS = {
     basic: process.env.STRIPE_PRICE_BASIC!,
@@ -34,7 +21,7 @@ export async function POST(req: NextRequest) {
             }, { status: 400 });
         }
 
-        const supabase = createRouteHandlerClient({ cookies });
+        const supabase = await createClient();
 
         // Get user and organization
         const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -71,6 +58,7 @@ export async function POST(req: NextRequest) {
         console.log('Organization fetch:', { data: userOrgData, error: orgError });
 
         // Get client id
+        if (userOrgData?.organization_id) {
         const { data: client, error: clientError } = await supabase
             .from('clients')
             .select('client_id')
@@ -80,6 +68,7 @@ export async function POST(req: NextRequest) {
         if (clientError || !client) {
             return NextResponse.json({ error: 'Client not found' }, { status: 404 });
         }
+
 
         // Initialize Stripe (with proper error handling)
         let stripe;
@@ -123,6 +112,13 @@ export async function POST(req: NextRequest) {
                 }
             });
             stripeCustomerId = customer.id;
+
+            if (!userOrgData.organization_id || !stripeCustomerId || !user.email) {
+                console.error('Missing required fields for stripe_customers insert');
+                return NextResponse.json({
+                    error: 'Missing required customer data'
+                }, { status: 400 });
+            }
 
             // Save to our stripe_customers table
             await supabase
@@ -174,6 +170,7 @@ export async function POST(req: NextRequest) {
                 error: 'Failed to create checkout session',
                 details: sessionError.message
             }, { status: 500 });
+        }
         }
     } catch (error: any) {
         console.error('Unexpected error in checkout API:', error);

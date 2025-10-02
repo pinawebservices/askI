@@ -1,8 +1,7 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Client } from '@/types/database';
-import {cookies} from "next/headers";
+import { createClient } from '@/lib/supabase/server-client';
 import PricingCardsWrapper from "@/app/dashboard/components/pricing-cards-wrapper";
 import WelcomeAboard from "@/app/dashboard/components/welcome-aboard";
 
@@ -11,17 +10,6 @@ interface ClientDashboardProps {
         clientId: string;
     }>;
     searchParams: Promise<{ session_id?: string; success?: string }>;
-}
-
-// #FIXME: Suppress the Next.js 15 cookies warning - known issue with auth-helpers
-if (typeof window === 'undefined') {
-    const originalWarn = console.warn;
-    console.warn = (...args) => {
-        if (args[0]?.includes?.('cookies()') || args[0]?.includes?.('sync-dynamic-apis')) {
-            return;
-        }
-        originalWarn(...args);
-    };
 }
 
 
@@ -33,7 +21,7 @@ export default async function ClientDashboard({
     const search = await searchParams;
     const isSuccess = search?.success === 'true' || !!search?.session_id;
 
-    const supabaseServerClient = createServerComponentClient({ cookies });
+    const supabaseServerClient = await createClient();
 
     // Now you can use clientId
     const { data: client, error } = await supabaseServerClient
