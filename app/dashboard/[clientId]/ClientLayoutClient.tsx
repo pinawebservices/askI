@@ -181,12 +181,12 @@ export default function ClientLayoutClient({
                             />
 
                             <SidebarLink
-                                href={hasFeature('instructions')
-                                    ? `/dashboard/${clientId}/instructions`
+                                href={hasFeature('agent_config')
+                                    ? `/dashboard/${clientId}/agent-config`
                                     : `/dashboard/${clientId}/subscription`}
-                                icon="📝"
-                                label="Instructions"
-                                disabled={!hasFeature('instructions')}
+                                icon="🤖"
+                                label="Agent Config"
+                                disabled={!hasFeature('agent_config')}
                                 badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
                             />
 
