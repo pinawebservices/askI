@@ -1,4 +1,4 @@
-// app/dashboard/[clientId]/instructions/page.tsx
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -8,7 +8,7 @@ import type { Database } from '@/types/supabase';
 
 type ClientInstructions = Database['public']['Tables']['client_instructions']['Row'];
 
-export default function InstructionsPage() {
+export default function AgentConfigPage() {
     const params = useParams();
     const clientId = params.clientId as string;
     const router = useRouter();
@@ -28,7 +28,8 @@ export default function InstructionsPage() {
         special_instructions: null,
         formatting_rules: null,
         lead_capture_process: null,
-        response_time: '2 hours'
+        response_time: '2 hours',
+        widget_primary_color: '#000000',
     });
 
     const [loading, setLoading] = useState(true);
@@ -97,7 +98,8 @@ export default function InstructionsPage() {
                         special_instructions: instructions.special_instructions || null,
                         formatting_rules: instructions.formatting_rules || null,
                         lead_capture_process: instructions.lead_capture_process || null,
-                        response_time: instructions.response_time || null
+                        response_time: instructions.response_time || null,
+                        widget_primary_color: instructions.widget_primary_color || '#000000'
                     } as any, { onConflict: 'client_id' })
                 .select()
                 .single();
@@ -222,7 +224,7 @@ export default function InstructionsPage() {
         <div className="max-w-4xl mx-auto">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold mb-2">
-                    AI Agent Instructions
+                    AI Agent Configuration
                 </h1>
 
                 {/* Success Message */}
@@ -397,6 +399,84 @@ export default function InstructionsPage() {
                             rows={4}
                         />
                     </div>
+
+                    {/* Widget Appearance */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h2 className="text-lg font-semibold mb-4">Widget Appearance</h2>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Primary Color
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="color"
+                                    value={instructions.widget_primary_color || '#000000'}
+                                    onChange={(e) => handleInputChange('widget_primary_color', e.target.value)}
+                                    className="h-10 w-20"
+                                />
+                                <input
+                                    type="text"
+                                    value={instructions.widget_primary_color || '#000000'}
+                                    onChange={(e) => handleInputChange('widget_primary_color', e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="#2563EB"
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                This color will be used for your chat agent widget.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Embed Code - Only shown after first save */}
+                    {instructions.id && (
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <h2 className="text-lg font-semibold mb-4">Widget Embed Code</h2>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Add this code to your website just before the closing &lt;/body&gt; tag
+                            </p>
+
+                            <div className="relative">
+            <pre className="bg-gray-100 p-4 rounded-md text-xs overflow-x-auto">
+{`<!-- AI Agent Widget -->
+<script>
+window.aiChatbotConfig = {
+    apiUrl: "${window.location.origin}",
+    clientId: "${clientId}",
+    businessName: "${instructions.business_name}",
+    businessType: "${instructions.business_type || ''}",
+    theme: {
+        primaryColor: "${instructions.widget_primary_color || '#2563EB'}"
+    }
+};
+</script>
+<script src="${window.location.origin}/embed.js"></script>`}
+            </pre>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`<!-- AI Agent Widget -->
+<script>
+window.aiChatbotConfig = {
+    apiUrl: "${window.location.origin}",
+    clientId: "${clientId}",
+    businessName: "${instructions.business_name}",
+    businessType: "${instructions.business_type || ''}",
+    theme: {
+        primaryColor: "${instructions.widget_primary_color || '#2563EB'}"
+    }
+};
+</script>
+<script src="${window.location.origin}/embed.js"></script>`);
+                                        alert('Embed code copied to clipboard!');
+                                    }}
+                                    className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/*/!* Formatting Rules *!/*/}
                     {/*<div>*/}

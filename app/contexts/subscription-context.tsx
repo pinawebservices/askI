@@ -18,13 +18,13 @@ interface SubscriptionContextType {
 const FEATURE_GATES = {
     none: [],
     basic: [
-        'instructions',
+        'agent_config',
         'email_notifications',
         'basic_customization',
         'standard_support'
     ],
     pro: [
-        'instructions',
+        'agent_config',
         'email_notifications',
         'sms_notifications',
         'document_training',
@@ -34,7 +34,7 @@ const FEATURE_GATES = {
         'analytics'
     ],
     premium: [
-        'instructions',
+        'agent_config',
         'email_notifications',
         'sms_notifications',
         'document_training',
