@@ -292,16 +292,60 @@ export default function AgentConfigPage() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Select business type...</option>
-                            <option value="wellness_spa">Wellness Spa</option>
-                            <option value="chiropractor">Chiropractor</option>
-                            <option value="physical_therapy">Physical Therapy</option>
-                            <option value="massage_therapy">Massage Therapy</option>
-                            <option value="acupuncture">Acupuncture</option>
-                            <option value="cryotherapy">Cryotherapy Center</option>
-                            <option value="meditation">Meditation Studio</option>
-                            <option value="yoga">Yoga Studio</option>
-                            <option value="functional_medicine">Functional Medicine</option>
-                            <option value="other">Other Wellness Business</option>
+
+                            <optgroup label="Legal & Financial">
+                                <option value="law_firm">Law Firm</option>
+                                <option value="accounting_firm">Accounting Firm</option>
+                                <option value="tax_preparation">Tax Preparation Service</option>
+                                <option value="financial_advisor">Financial Advisory</option>
+                                <option value="insurance_agency">Insurance Agency</option>
+                            </optgroup>
+
+                            <optgroup label="Medical & Healthcare">
+                                <option value="medical_practice">Medical Practice</option>
+                                <option value="dental_practice">Dental Practice</option>
+                                <option value="optometry">Optometry Clinic</option>
+                                <option value="veterinary">Veterinary Clinic</option>
+                                <option value="mental_health">Mental Health Practice</option>
+                                <option value="physical_therapy">Physical Therapy</option>
+                                <option value="chiropractic">Chiropractic Clinic</option>
+                            </optgroup>
+
+                            <optgroup label="Real Estate & Property">
+                                <option value="real_estate">Real Estate Agency</option>
+                                <option value="property_management">Property Management</option>
+                                <option value="mortgage_broker">Mortgage Broker</option>
+                            </optgroup>
+
+                            <optgroup label="Home Services">
+                                <option value="hvac">HVAC Services</option>
+                                <option value="plumbing">Plumbing Services</option>
+                                <option value="electrical">Electrical Services</option>
+                                <option value="roofing">Roofing Contractor</option>
+                                <option value="general_contractor">General Contractor</option>
+                                <option value="cleaning_service">Cleaning Service</option>
+                            </optgroup>
+
+                            <optgroup label="Beauty & Wellness">
+                                <option value="beauty_salon">Beauty Salon</option>
+                                <option value="barbershop">Barbershop</option>
+                                <option value="spa">Spa & Wellness Center</option>
+                                <option value="fitness_center">Fitness Center/Gym</option>
+                            </optgroup>
+
+                            <optgroup label="Automotive">
+                                <option value="auto_repair">Auto Repair Shop</option>
+                                <option value="auto_dealership">Auto Dealership</option>
+                                <option value="auto_detailing">Auto Detailing</option>
+                            </optgroup>
+
+                            <optgroup label="Education & Consulting">
+                                <option value="tutoring">Tutoring Service</option>
+                                <option value="consulting">Business Consulting</option>
+                                <option value="marketing_agency">Marketing Agency</option>
+                            </optgroup>
+
+                            <option value="other">Other Professional Service</option>
                         </select>
                     </div>
 

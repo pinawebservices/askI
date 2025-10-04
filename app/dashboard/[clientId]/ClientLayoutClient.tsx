@@ -190,50 +190,50 @@ export default function ClientLayoutClient({
                                 badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
                             />
 
-                            {/* Show features based on plan */}
-                            {canAccessPlan('pro') && (
-                                <>
-                                    <SidebarLink
-                                        href={hasFeature('document_training')
-                                            ? `/dashboard/${clientId}/documents`
-                                            : `/dashboard/${clientId}/subscription`}
-                                        icon="📁"
-                                        label="Documents"
-                                        disabled={!hasFeature('document_training')}
-                                        badge={!isActive ? 'Inactive' : null}
-                                    />
+                            {/*/!* Show features based on plan *!/*/}
+                            {/*{canAccessPlan('pro') && (*/}
+                            {/*    <>*/}
+                            {/*        <SidebarLink*/}
+                            {/*            href={hasFeature('document_training')*/}
+                            {/*                ? `/dashboard/${clientId}/documents`*/}
+                            {/*                : `/dashboard/${clientId}/subscription`}*/}
+                            {/*            icon="📁"*/}
+                            {/*            label="Documents"*/}
+                            {/*            disabled={!hasFeature('document_training')}*/}
+                            {/*            badge={!isActive ? 'Inactive' : null}*/}
+                            {/*        />*/}
 
-                                    <SidebarLink
-                                        href={hasFeature('analytics')
-                                            ? `/dashboard/${clientId}/analytics`
-                                            : `/dashboard/${clientId}/subscription`}
-                                        icon="📊"
-                                        label="Analytics"
-                                        disabled={!hasFeature('analytics')}
-                                        badge={!isActive ? 'Inactive' : null}
-                                    />
-                                </>
-                            )}
+                            {/*        <SidebarLink*/}
+                            {/*            href={hasFeature('analytics')*/}
+                            {/*                ? `/dashboard/${clientId}/analytics`*/}
+                            {/*                : `/dashboard/${clientId}/subscription`}*/}
+                            {/*            icon="📊"*/}
+                            {/*            label="Analytics"*/}
+                            {/*            disabled={!hasFeature('analytics')}*/}
+                            {/*            badge={!isActive ? 'Inactive' : null}*/}
+                            {/*        />*/}
+                            {/*    </>*/}
+                            {/*)}*/}
 
-                            {/* Show as upgrade prompts for Basic users */}
-                            {planType === 'basic' && (
-                                <>
-                                    <SidebarLink
-                                        href={`/dashboard/${clientId}/subscription`}
-                                        icon="📁"
-                                        label="Documents"
-                                        disabled={true}
-                                        badge="Pro+"
-                                    />
-                                    <SidebarLink
-                                        href={`/dashboard/${clientId}/subscription`}
-                                        icon="📊"
-                                        label="Analytics"
-                                        disabled={true}
-                                        badge="Pro+"
-                                    />
-                                </>
-                            )}
+                            {/*/!* Show as upgrade prompts for Basic users *!/*/}
+                            {/*{planType === 'basic' && (*/}
+                            {/*    <>*/}
+                            {/*        <SidebarLink*/}
+                            {/*            href={`/dashboard/${clientId}/subscription`}*/}
+                            {/*            icon="📁"*/}
+                            {/*            label="Documents"*/}
+                            {/*            disabled={true}*/}
+                            {/*            badge="Pro+"*/}
+                            {/*        />*/}
+                            {/*        <SidebarLink*/}
+                            {/*            href={`/dashboard/${clientId}/subscription`}*/}
+                            {/*            icon="📊"*/}
+                            {/*            label="Analytics"*/}
+                            {/*            disabled={true}*/}
+                            {/*            badge="Pro+"*/}
+                            {/*        />*/}
+                            {/*    </>*/}
+                            {/*)}*/}
 
                             <SidebarLink
                                 href={`/dashboard/${clientId}/settings`}
