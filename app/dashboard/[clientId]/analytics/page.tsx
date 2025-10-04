@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server-client';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Client } from '@/types/database';
@@ -11,9 +11,10 @@ interface ClientDashboardProps {
 
 export default async function ClientDashboard({ params }: ClientDashboardProps) {
     const { clientId } = await params;
+    const supabase = await createClient();
 
     // Fetch client data with type safety
-    const { data: client, error } = await supabaseAdmin
+    const { data: client, error } = await supabase
         .from('clients')
         .select('*')
         .eq('client_id', clientId)
@@ -24,7 +25,7 @@ export default async function ClientDashboard({ params }: ClientDashboardProps) 
     }
 
     // Calculate some stats (example)
-    const { count: messageCount } = await supabaseAdmin
+    const { count: messageCount } = await supabase
         .from('chat_conversations')
         .select('*', { count: 'exact', head: true })
         .eq('client_id', clientId);
@@ -55,7 +56,7 @@ export default async function ClientDashboard({ params }: ClientDashboardProps) 
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <DashboardLink
-                    href={`/dashboard/${clientId}/instructions`}
+                    href={`/dashboard/${clientId}/agent-config`}
                     icon="📝"
                     title="Instructions"
                     description="Manage chatbot personality"
