@@ -208,26 +208,26 @@ export default function ApartmentsPage(): React.JSX.Element {
           </div>
         </div>
 
-{/*        /!* /!*AI Chatbot Widget -- DEV *!/*!/*/}
-{/*        <script*/}
-{/*            dangerouslySetInnerHTML={{*/}
-{/*              __html: `*/}
-{/*window.aiChatbotConfig = {*/}
-{/*    apiUrl: "http://localhost:3000",*/}
-{/*    clientId: "new-comp-ff02de06",*/}
-{/*    businessName: "New Comp Corp.",*/}
-{/*    businessType: "meditation",*/}
-{/*    theme: {*/}
-{/*        primaryColor: "#000000"*/}
-{/*    }*/}
-{/*};*/}
-{/*                    `*/}
-{/*            }}*/}
-{/*        />*/}
-{/*        <script src="http://localhost:3000/embed.js" />*/}
+        {/* /!*AI Chatbot Widget -- DEV *!/*/}
+        <script
+            dangerouslySetInnerHTML={{
+              __html: `
+window.aiChatbotConfig = {
+    apiUrl: "http://localhost:3000",
+    clientId: "new-comp-ff02de06",
+    businessName: "New Comp Corp.",
+    businessType: "physical_therapy",
+    theme: {
+        primaryColor: "#000000"
+    }
+};
+                    `
+            }}
+        />
+        <script src="http://localhost:3000/embed.js" />
 
         {/*/!* AI Chatbot Widget -- PROD *!/*/}
-        <ChatbotProvider />
+        {/*<ChatbotProvider />*/}
       </div>
   );
 }

@@ -145,9 +145,9 @@ p {
 }
 
 /* Region - Attention-grabbing widget bounce */
-.chat-widget-bounce {
-    animation: bounce 2s infinite;
-}
+/*.chat-widget-bounce {*/
+/*    animation: bounce 2s infinite;*/
+/*}*/
 
 /*@keyframes bounce {*/
 /*    0%, 20%, 50%, 80%, 100% {*/
