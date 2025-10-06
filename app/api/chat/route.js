@@ -217,9 +217,17 @@ loadIndustryConfigs();
 
 export async function POST(request) {
     try {
-        const {messages, clientId, conversationId} = await request.json();
+
+        const clientId = request.headers.get('x-client-id');
+
+        if (!clientId) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const {messages, conversationId} = await request.json();
         const userMessage = messages[messages.length - 1].content;
         const leadState = getLeadCaptureState(conversationId);
+
         let convId;
 
         // New Conversations reset lead stage
@@ -231,7 +239,6 @@ export async function POST(request) {
         // Require conversation ID from frontend
         if (!conversationId) {
             console.error(`No conversation ID provided_clientId: ${clientId}, Date: ${Date.now()} .. creating fallback convId`);
-
             // Fallback create convId
             convId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         } else if (!convId){
@@ -549,6 +556,11 @@ export async function POST(request) {
         console.error('Chat error:', error);
         return Response.json({ error: 'Failed to process' }, { status: 500 });
     }
+}
+
+// Handle OPTIONS for CORS preflight
+export async function OPTIONS(request) {
+    return new Response(null, { status: 200 });
 }
 
 // Helpers

@@ -198,6 +198,9 @@ export type Database = {
       }
       clients: {
         Row: {
+          allowed_domains: string[] | null
+          api_key: string | null
+          api_key_created_at: string | null
           business_name: string
           client_id: string
           created_at: string | null
@@ -217,6 +220,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allowed_domains?: string[] | null
+          api_key?: string | null
+          api_key_created_at?: string | null
           business_name: string
           client_id: string
           created_at?: string | null
@@ -236,6 +242,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allowed_domains?: string[] | null
+          api_key?: string | null
+          api_key_created_at?: string | null
           business_name?: string
           client_id?: string
           created_at?: string | null

@@ -4,10 +4,10 @@
 import { useState, useEffect } from 'react';
 
 export default function EmbedPage() {
-    const [businessName, setBusinessName] = useState('Mario\'s Italian Restaurant');
-    const [businessType, setBusinessType] = useState('restaurant');
+    const [businessName, setBusinessName] = useState('Professional Services Company');
+    const [businessType, setBusinessType] = useState('default');
     const [customDetails, setCustomDetails] = useState('');
-    const [primaryColor, setPrimaryColor] = useState('#2563EB');
+    const [primaryColor, setPrimaryColor] = useState('#000000');
     const [customerId, setCustomerId] = useState('');
     const [baseUrl, setBaseUrl] = useState('http://localhost:3000');
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import crypto from 'crypto';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -94,6 +95,33 @@ export async function POST(req: NextRequest) {
                             console.log('Successfully updated organizations to plan type: ', plan_type);
                         }
 
+                        const { data: clientData } = await supabaseAdmin
+                            .from('clients')
+                            .select('client_id')
+                            .eq('organization_id', organization_id)
+                            .single();
+
+                        if (clientData) {
+                            // Generate API key
+                            const apiKey = `ak_${clientData.client_id}_${crypto.randomBytes(24).toString('hex')}`;
+
+                            // Update client with API key
+                            const { error: apiKeyError } = await supabaseAdmin
+                                .from('clients')
+                                .update({
+                                    api_key: apiKey,
+                                    allowed_domains: ['*'], // Start permissive for auto-detection
+                                    api_key_created_at: new Date().toISOString()
+                                })
+                                .eq('client_id', clientData.client_id);
+
+                            if (apiKeyError) {
+                                console.error('Failed to generate API key:', apiKeyError);
+                            } else {
+                                console.log(`✅ Generated API key for client: ${clientData.client_id}`);
+                            }
+                        }
+
 
                     } catch (err) {
                         console.error('Error processing subscription:', err);
@@ -181,9 +209,23 @@ export async function POST(req: NextRequest) {
                     if (orgError) {
                         console.error('Error updating organization plan change:', orgError);
                     }
+
+                    if (subscription.status === 'active' && previousAttributes?.status === 'canceled') {
+                        const { error: reactivateError } = await supabaseAdmin
+                            .from('clients')
+                            .update({
+                                is_active: true  // Reactivate their API access
+                            })
+                            .eq('organization_id', subData.organization_id);
+
+                        if (!reactivateError) {
+                            console.log('✅ Reactivated API access for resumed subscription');
+                        }
+                    }
                 }
 
                 console.log(`Subscription updated successfully.`);
+
                 break;
             }
 
@@ -195,14 +237,6 @@ export async function POST(req: NextRequest) {
                     .select('organization_id, plan_type')
                     .eq('stripe_subscription_id', subscription.id)
                     .single();
-
-
-                if (!subData) {
-                    console.error('subData delete: no records returned');
-                } else if (subError) {
-                    console.error('subData delete error:', subError);
-                }
-
 
                 if (subData) {
 
@@ -243,6 +277,24 @@ export async function POST(req: NextRequest) {
                     }
 
                     console.log('Organization plan type updated');
+
+                    const { error: deactivateError } = await supabaseAdmin
+                        .from('clients')
+                        .update({
+                            is_active: false  // This makes their API key invalid
+                        })
+                        .eq('organization_id', subData.organization_id);
+
+                    if (deactivateError) {
+                        console.error('Failed to deactivate client:', deactivateError);
+                    } else {
+                        console.log('✅ Deactivated API access for cancelled subscription');
+                    }
+
+                } else if (!subData) {
+                    console.error('subData delete: no records returned');
+                } else if (subError) {
+                    console.error('subData delete error:', subError);
                 }
 
                 break;

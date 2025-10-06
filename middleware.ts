@@ -2,8 +2,14 @@
 import { createClient } from '@/lib/supabase/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { validateApiRequest } from '@/lib/middleware/cors-auth-simple';
 
 export async function middleware(req: NextRequest) {
+
+    if (req.nextUrl.pathname === '/api/chat') {
+        return validateApiRequest(req);
+    }
+
     const res = NextResponse.next();
     const supabase = createClient(req, res);
 
@@ -52,5 +58,6 @@ export const config = {
         '/dashboard/:path*',
         '/login',
         '/signup',
+        '/api/chat',
     ],
 };

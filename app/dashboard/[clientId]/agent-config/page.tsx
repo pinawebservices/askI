@@ -35,6 +35,7 @@ export default function AgentConfigPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [warningMessage, setWarningMessage] = useState<string | null>(null);
@@ -476,48 +477,33 @@ export default function AgentConfigPage() {
                     {/* Embed Code - Only shown after first save */}
                     {instructions.id && (
                         <div className="bg-white rounded-lg shadow p-6">
-                            <h2 className="text-lg font-semibold mb-4">Widget Embed Code</h2>
+                            <h2 className="text-lg font-semibold mb-4">Install Your AI Assistant</h2>
                             <p className="text-sm text-gray-600 mb-4">
-                                Add this code to your website just before the closing &lt;/body&gt; tag
+                                Copy and paste this code into your website&apos;s HTML, just before the closing &lt;/body&gt; tag:
                             </p>
 
                             <div className="relative">
-            <pre className="bg-gray-100 p-4 rounded-md text-xs overflow-x-auto">
-{`<!-- AI Agent Widget -->
-<script>
-window.aiChatbotConfig = {
-    apiUrl: "${window.location.origin}",
-    clientId: "${clientId}",
-    businessName: "${instructions.business_name}",
-    businessType: "${instructions.business_type || ''}",
-    theme: {
-        primaryColor: "${instructions.widget_primary_color || '#2563EB'}"
-    }
-};
-</script>
-<script src="${window.location.origin}/embed.js"></script>`}
+            <pre className="border border-gray-300 bg-gray-200 p-4 rounded-lg overflow-x-auto text-sm">
+                <code>{`<script src="${window.location.origin}/embed.js" data-client="${clientId}"></script>`}</code>
             </pre>
+
                                 <button
                                     onClick={() => {
-                                        navigator.clipboard.writeText(`<!-- AI Agent Widget -->
-<script>
-window.aiChatbotConfig = {
-    apiUrl: "${window.location.origin}",
-    clientId: "${clientId}",
-    businessName: "${instructions.business_name}",
-    businessType: "${instructions.business_type || ''}",
-    theme: {
-        primaryColor: "${instructions.widget_primary_color || '#2563EB'}"
-    }
-};
-</script>
-<script src="${window.location.origin}/embed.js"></script>`);
-                                        alert('Embed code copied to clipboard!');
+                                        const embedCode = `<script src="${window.location.origin}/embed.js" data-client="${clientId}"></script>`;
+                                        navigator.clipboard.writeText(embedCode);
+                                        setCopied(true);
+                                        setTimeout(() => setCopied(false), 2000);
                                     }}
-                                    className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                    className="absolute top-2 right-2 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
                                 >
-                                    Copy
+                                    {copied ? '✓ Copied!' : 'Copy'}
                                 </button>
+                            </div>
+
+                            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm text-blue-900">
+                                    <strong>That&apos;s it!</strong> The AI assistant will automatically appear on your website and configure itself. No additional setup required.
+                                </p>
                             </div>
                         </div>
                     )}
@@ -567,11 +553,11 @@ window.aiChatbotConfig = {
                             Cancel
                         </button>
 
-                        {instructions.id && (
-                            <span className="ml-auto text-sm text-gray-500 self-center">
-                                Last updated: {instructions.updated_at ? new Date(instructions.updated_at).toLocaleDateString() : 'Never'}
-                            </span>
-                        )}
+                        {/*{instructions.id && (*/}
+                        {/*    <span className="ml-auto text-sm text-gray-500 self-center">*/}
+                        {/*        Last updated: {instructions.updated_at ? new Date(instructions.updated_at).toLocaleDateString() : 'Never'}*/}
+                        {/*    </span>*/}
+                        {/*)}*/}
                     </div>
                 </div>
             </div>
