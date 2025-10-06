@@ -5,14 +5,8 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-console.log('Supabase URL:', supabaseUrl ? 'Set' : 'MISSING!')
-console.log('Supabase Anon Key:', supabaseAnonKey ? 'Set' : 'MISSING!')
-
 if (!supabaseUrl || !supabaseAnonKey) {
     console.error('Missing Supabase environment variables!')
-    console.error('Please check your .env.local file has:')
-    console.error('NEXT_PUBLIC_SUPABASE_URL=your-url-here')
-    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key-here')
 
     // Throw an error in development, but try to continue in production
     if (process.env.NODE_ENV === 'development') {

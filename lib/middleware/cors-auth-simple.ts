@@ -73,12 +73,33 @@ export async function validateApiRequest(request: NextRequest) {
         apiKeyCache.set(apiKey, client);
     }
 
+
+
     // Check origin
     const isAllowed = (client.allowed_domains || []).some((domain: string)=> {
-        return domain === origin || domain === '*'; // * for dev only
+        // In development, allow localhost and wildcard
+        if (process.env.NODE_ENV === 'development') {
+            return domain === origin ||
+                domain === '*' ||
+                origin?.includes('localhost');
+        }
+
+        // In production, STRICT domain matching only
+        // Remove wildcards entirely in production
+        if (domain === '*') {
+            console.error(`WARNING: wildcard domain in production!`);
+            return false; // Never allow wildcards in production
+        }
+
+        // Exact match or subdomain match
+        return origin === domain ||
+            origin === `https://${domain}` ||
+            origin === `http://${domain}`
+            // || origin?.endsWith(`.${domain}`); // Allow subdomains
     });
 
-    if (!isAllowed && process.env.NODE_ENV === 'production') {
+    if (!isAllowed) {
+        console.log(`Origin ${origin} not allowed for client ${client.client_id}`);
         return NextResponse.json(
             { error: 'Origin not allowed' },
             { status: 403 }

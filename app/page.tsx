@@ -50,23 +50,24 @@ export default function HomePage() {
                   <FinFooter />
               </main>
                {/*AI Chatbot Widget -- DEV */}
-              <script
-                  dangerouslySetInnerHTML={{
-                      __html: `
-                        window.aiChatbotConfig = {
-                            apiUrl: "http://localhost:3000",
-                            businessType: "Law Firm", 
-                            businessName: "Morrison & Associates Law Firm",
-                            clientId: "law-101",
-                            theme: {
-                                primaryColor: "#000000",
-                                textColor: "#FFFFFF"
-                            }
-                        };
-                    `
-                  }}
-              />
-              <script src="http://localhost:3000/embed.js" />
+              {/*<script*/}
+              {/*    dangerouslySetInnerHTML={{*/}
+              {/*        __html: `*/}
+              {/*          window.aiChatbotConfig = {*/}
+              {/*              apiUrl: "http://localhost:3000",*/}
+              {/*              businessType: "Law Firm", */}
+              {/*              businessName: "Morrison & Associates Law Firm",*/}
+              {/*              clientId: "law-101",*/}
+              {/*              theme: {*/}
+              {/*                  primaryColor: "#000000",*/}
+              {/*                  textColor: "#FFFFFF"*/}
+              {/*              }*/}
+              {/*          };*/}
+              {/*      `*/}
+              {/*    }}*/}
+              {/*/>*/}
+              {/*<script src="http://localhost:3000/embed.js" />*/}
+              <script src="http://localhost:3000/embed.js" data-client="law-101"></script>
 
               {/*/!* AI Chatbot Widget -- PROD *!/*/}
               {/*<ChatbotProvider />*/}

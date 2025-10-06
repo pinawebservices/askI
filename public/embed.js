@@ -12,7 +12,8 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
     return;
   }
 
-  console.log("📡 Loading configuration for:", clientId);
+  // DEBUG
+  // console.log("📡 Loading configuration for:", clientId);
 
   // Check if widget already loaded
   if (window.aiChatbotLoaded) return;
@@ -24,8 +25,9 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
       window.location.origin;  // Fallback to current origin
   const currentDomain = window.location.origin;
 
-  console.log(`API URL: ${apiBaseUrl}`);
-  console.log(`Fetching: ${apiBaseUrl}/api/widget-config/${clientId}?domain=${encodeURIComponent(currentDomain)}`);
+  // DEBUG
+  // console.log(`API URL: ${apiBaseUrl}`);
+  // console.log(`Fetching: ${apiBaseUrl}/api/widget-config/${clientId}?domain=${encodeURIComponent(currentDomain)}`);
 
   fetch(`${apiBaseUrl}/api/widget-config/${clientId}?domain=${encodeURIComponent(currentDomain)}`)
       .then(res => {
@@ -53,9 +55,6 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
       .catch(error => {
         console.error('❌ AI Chatbot initialization failed:', error.message);
       });
-
-  // Configuration
-  // const config = window.aiChatbotConfig
 
   function initializeWidget(config) {
     // Enhanced markdown parser for structured responses
@@ -366,9 +365,11 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         if (!conversationId || messages.length <= 2) {
           conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           sessionStorage.setItem('embed_conversationId', conversationId);
-          console.log('📝 [Embed] Created new conversation ID:', conversationId);
+          // DEBUG
+          // console.log('📝 [Embed] Created new conversation ID:', conversationId);
         } else {
-          console.log('📝 [Embed] Using existing conversation ID:', conversationId);
+          // DEBUG
+          //console.log('📝 [Embed] Using existing conversation ID:', conversationId);
         }
         return conversationId;
       }
@@ -387,11 +388,12 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
       // Show typing indicator
       showTypingIndicator();
 
-      console.log('📤 [Embed] Sending to API:', {
-        conversationId: conversationId,
-        messageCount: messages.length,
-        hasApiKey: !!config.apiKey
-      });
+      // DEBUG
+      // console.log('📤 [Embed] Sending to API:', {
+      //   conversationId: conversationId,
+      //   messageCount: messages.length,
+      //   hasApiKey: !!config.apiKey
+      // });
 
       try {
         const response = await fetch(`${config.apiUrl}/api/chat`, {
@@ -414,7 +416,8 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         }
 
         const data = await response.json();
-        console.log('📥 [Embed] Response received:', data);
+        // DEBUG
+        //console.log('📥 [Embed] Response received:', data);
 
         // Remove typing indicator
         hideTypingIndicator();
@@ -428,16 +431,18 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         if (assistantMessage) {
           messages.push(assistantMessage);
           renderMessages();
-          console.log("✅ Response received");
+          // DEBUG
+          // console.log("✅ Response received");
 
           // ADD THIS: Log Pinecone debug info if available
-          if (data.debug) {
-            console.log("📊 Pinecone stats:", {
-              chunksUsed: data.debug.chunksUsed,
-              contextSize: data.debug.contextSize,
-              topScore: data.debug.topScore
-            });
-          }
+          // DEBUG
+          // if (data.debug) {
+          //   console.log("📊 Pinecone stats:", {
+          //     chunksUsed: data.debug.chunksUsed,
+          //     contextSize: data.debug.contextSize,
+          //     topScore: data.debug.topScore
+          //   });
+          // }
         }
       } catch (error) {
         console.error("❌ Chat error:", error);
@@ -652,7 +657,8 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         // Add to page
         document.body.appendChild(widgetContainer);
 
-        console.log("✅ Full widget initialized successfully!");
+        // DEBUG
+        // console.log("✅ Full widget initialized successfully!");
       } catch (error) {
         console.error("❌ Error initializing widget:", error);
       }
