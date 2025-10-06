@@ -61,7 +61,7 @@ export async function GET(
 
             console.log(`Auto-added domain ${domain} for client ${clientId}`);
         } else {
-            console.warn(`Client ${clientId} has too many domains, manual approval needed`);
+            console.warn(`⚠️ Client ${clientId} hit domain limit.`);
         }
     }
 

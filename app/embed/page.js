@@ -16,22 +16,11 @@ export default function EmbedPage() {
         setBaseUrl(window.location.origin);
     }, []);
 
+    // #FIXME - this page will be going away
     const generateEmbedCode = () => {
         return `<!-- AI Chatbot Widget -->
-<script>
-  window.aiChatbotConfig = {
-    apiUrl: '${baseUrl}',
-    businessType: '${businessType}',
-    businessName: '${businessName}',
-    customDetails: '${customDetails}',
-    customerId: '${customerId}',
-    theme: {
-      primaryColor: '${primaryColor}',
-      textColor: '#FFFFFF'
-    }
-  };
-</script>
-<script src="${baseUrl}/embed.js"></script>`;
+<h1>FIXME</h1>
+`;
     };
 
     const copyToClipboard = () => {

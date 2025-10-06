@@ -6,6 +6,11 @@ import validator from 'validator';
 import { IndustryConfig, loadIndustryConfigs } from '@/lib/industries';
 import {sendLeadNotificationEmail} from "@/lib/services/notifications/emailNotifications.js";
 
+// Rate limiting
+const requestCounts = new Map();  // Stores request history for each client
+const RATE_LIMIT_WINDOW = 60000;  // 60,000 milliseconds = 1 minute
+const MAX_REQUESTS = 20;          // Allow max 20 requests per minute
+
 // Add this near the top of your route.js file
 const conversationStates = new Map(); // Store state per conversation
 
@@ -209,6 +214,52 @@ function getLeadCaptureState(conversationId) {
     return conversationStates.get(conversationId);
 }
 
+/**
+ * Checks if a client has exceeded the rate limit for API requests.
+ * Implements a sliding window rate limiter that tracks requests per client
+ * over a rolling time period.
+ *
+ * @function checkRateLimit
+ * @param {string} identifier - Unique identifier for the client (usually clientId or API key)
+ * @returns {boolean} Returns true if request is allowed, false if rate limit exceeded
+ *
+ * @example
+ * // Check if client can make a request
+ * const clientId = 'client-123';
+ * if (!checkRateLimit(clientId)) {
+ *     return Response.json(
+ *         { error: 'Too many requests' },
+ *         { status: 429 }
+ *     );
+ * }
+ *
+ * @description
+ * Rate Limiting Strategy:
+ * - Window: 60 seconds rolling window
+ * - Limit: 20 requests per window
+ * - Storage: In-memory (resets on server restart)
+ * - Scope: Per-client (one client can't affect others)
+ *
+ * @since 1.0.0
+ */
+function checkRateLimit(identifier) {
+    const now = Date.now();  // Current timestamp
+    const requests = requestCounts.get(identifier) || [];  // Get this client's history
+
+    // Keep only requests from the last minute
+    const recentRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
+
+    // If they've made 20+ requests in the last minute, block them
+    if (recentRequests.length >= MAX_REQUESTS) {
+        return false;  // BLOCKED - too many requests
+    }
+
+    // Otherwise, record this request and allow it
+    recentRequests.push(now);
+    requestCounts.set(identifier, recentRequests);
+    return true;  // ALLOWED
+}
+
 loadIndustryConfigs();
 
 /**
@@ -224,8 +275,25 @@ export async function POST(request) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        if (!checkRateLimit(clientId)) {
+            return Response.json(
+                { error: 'Too many requests. Please wait a moment.' },
+                { status: 429 }
+            );
+        }
+
         const {messages, conversationId} = await request.json();
+
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return Response.json({ error: 'Invalid message format' }, { status: 400 });
+        }
+
         const userMessage = messages[messages.length - 1].content;
+
+        if (!userMessage || typeof userMessage !== 'string' || userMessage.length > 1000) {
+            return Response.json({ error: 'Message must be under 1000 characters' }, { status: 400 });
+        }
+
         const leadState = getLeadCaptureState(conversationId);
 
         let convId;
