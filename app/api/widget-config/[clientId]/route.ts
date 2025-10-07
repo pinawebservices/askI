@@ -6,7 +6,7 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { clientId: string } }
 ) {
-    const { clientId } = params;
+    const { clientId } = await params;
     console.log('1. Widget config requested for clientId:', clientId);
     const domain = request.nextUrl.searchParams.get('domain');
 

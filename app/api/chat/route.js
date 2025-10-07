@@ -504,7 +504,10 @@ export async function POST(request) {
                 if (botOfferedCapture){
                 // Check if user just accepted
                 const userMessageLower = userMessage.toLowerCase().trim();
-                const positiveResponses = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely','love'];
+                const positiveResponses =
+                    ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely','love',
+                        'contact me','contact with someone','call me','speak with', 'schedule','scheduling','book','booking','appointment',
+                    'consultation','consult','quote','pricing','rate','rates'];
                 const negativeResponses = ['no', 'nope', 'not', 'nah', 'maybe later', 'not now'];
 
                 if (positiveResponses.some(resp => userMessageLower.includes(resp))) {
@@ -522,12 +525,45 @@ export async function POST(request) {
                 console.log(' Last user message: ', userMessage);
                 captureLeadInfo();
                 break;
-            // case LeadCaptureStage.ACCEPTED_OFFER_ASSUMED:
-            //     console.log("ACCEPTED OFFER ASSUMED STATE:")
-            //     console.log(' Current agent message: ', currentAgentMessage);
-            //     console.log(' Last user message: ', userMessage);
-            //     captureLeadInfo();
-            //     break;
+            case LeadCaptureStage.DECLINED_OFFER:
+                console.log("DECLINED OFFER STATE:");
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+
+                // Check if user changed their mind and wants to provide contact info
+                const reengagementTriggers = [
+                    'contact', 'book', 'schedule', 'booking', 'appoinment',
+                    'call me', 'email me', 'schedule', 'appointment',
+                    'changed my mind', 'on second thought', 'contacted', 'speak', 'talk'
+                ];
+
+                const botOfferedReCapture =
+                    (currentAgentMessage.includes('schedule') ||
+                        currentAgentMessage.includes('scheduling') ||
+                        currentAgentMessage.includes('book') ||
+                        currentAgentMessage.includes('booking') ||
+                        currentAgentMessage.includes('appointment') ||
+                        currentAgentMessage.includes('contact')) ||
+                    currentAgentMessage.includes('can i get your') ||
+                    currentAgentMessage.includes('may i have your');
+
+                const wantsToReengage = reengagementTriggers.some(trigger =>
+                    userMessage.toLowerCase().includes(trigger)
+                );
+
+                if (botOfferedReCapture) {
+                    console.log('🔄 Reinitializing lead capture');
+                    transitionStage(leadState, LeadCaptureStage.CAPTURE_INITIALIZED,
+                        'Agent reinitializing lead capture after initial decline');
+                }
+
+                if (wantsToReengage) {
+                    console.log('🔄 User changed mind - reinitializing lead capture');
+                    transitionStage(leadState, LeadCaptureStage.ACCEPTED_OFFER,
+                        'User reconsidered after initial decline');
+                }
+
+                break;
             case LeadCaptureStage.CONFIRMING:
                 const lastAgentMessagePriorToUserConfirming = messages[messages.length - 2]?.content?.toLowerCase() || '';
                 console.log("CONFIRMING OFFER STATE:")
