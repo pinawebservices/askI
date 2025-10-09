@@ -196,6 +196,65 @@ export type Database = {
         }
         Relationships: []
       }
+      client_services: {
+        Row: {
+          category: string | null
+          client_id: string
+          created_at: string | null
+          display_order: number | null
+          duration: string | null
+          id: string
+          is_active: boolean | null
+          price_amount: number | null
+          pricing: string | null
+          pricing_type: string | null
+          service_description: string | null
+          service_faqs: string | null
+          service_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          client_id: string
+          created_at?: string | null
+          display_order?: number | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_amount?: number | null
+          pricing?: string | null
+          pricing_type?: string | null
+          service_description?: string | null
+          service_faqs?: string | null
+          service_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          client_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          duration?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_amount?: number | null
+          pricing?: string | null
+          pricing_type?: string | null
+          service_description?: string | null
+          service_faqs?: string | null
+          service_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           allowed_domains: string[] | null
