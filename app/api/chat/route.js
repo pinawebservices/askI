@@ -181,12 +181,24 @@ const generateSystemPrompt = (agentConfig, relevantContext, industryEnhancement)
     const basicIndustryContext = `You are an AI assistant for ${agentConfig?.business_name || 'this business'}, a ${agentConfig?.business_type || 'professional service provider'}.`;
 
     return `${industryEnhancement || basicIndustryContext}
+    
+        CRITICAL INSTRUCTION - SERVICES AND PRICING:
+        - You MUST ONLY provide service and pricing information that is EXPLICITLY stated in the BUSINESS KNOWLEDGE BASE below
+        - When asked about services in general, focus on WHAT the service does and its benefits, NOT the pricing
+        - Only mention pricing when specifically asked about costs, rates, fees, or "how much"
+        - Never volunteer pricing information unless directly asked
+        - DO NOT make assumptions or inferences about what might be included based on similar items
+        - If something specific is not mentioned (like "grandparents" when only "parents" are listed), you MUST say it's not mentioned rather than assuming
+        - For example: If the knowledge base says "includes parents and children", DO NOT assume grandparents, siblings, or other relatives are included
+        - When asked about something not explicitly listed, say: "The information I have specifically mentions [what IS listed]. For [what they asked about], it would be best to check with a specialist."
+        - Never add information that isn't explicitly stated
+        - If a service FAQ doesn't cover their exact question, direct them to contact the business for clarification
 
         BUSINESS KNOWLEDGE BASE:
         ${relevantContext}
-        
-        ${agentConfig?.special_instructions ? `SPECIAL INSTRUCTIONS: ${agentConfig.special_instructions}` : ''}
-        
+
+        ${agentConfig?.special_instructions ? `SPECIAL INSTRUCTIONS (apply contextually when relevant, not in every response): ${agentConfig.special_instructions}` : ''}
+
         COMMUNICATION STYLE: Be ${agentConfig?.tone_style || 'helpful'} and ${agentConfig?.formality_level || 'professional'}.
         
         Answer based on the information provided. Always maintain professionalism and build trust while gathering necessary information.
@@ -504,7 +516,10 @@ export async function POST(request) {
                 if (botOfferedCapture){
                 // Check if user just accepted
                 const userMessageLower = userMessage.toLowerCase().trim();
-                const positiveResponses = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely','love'];
+                const positiveResponses =
+                    ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'please', 'definitely', 'absolutely','love',
+                        'contact me','contact with someone','call me','speak with', 'schedule','scheduling','book','booking','appointment',
+                    'consultation','consult','quote','pricing','rate','rates'];
                 const negativeResponses = ['no', 'nope', 'not', 'nah', 'maybe later', 'not now'];
 
                 if (positiveResponses.some(resp => userMessageLower.includes(resp))) {
@@ -522,12 +537,45 @@ export async function POST(request) {
                 console.log(' Last user message: ', userMessage);
                 captureLeadInfo();
                 break;
-            // case LeadCaptureStage.ACCEPTED_OFFER_ASSUMED:
-            //     console.log("ACCEPTED OFFER ASSUMED STATE:")
-            //     console.log(' Current agent message: ', currentAgentMessage);
-            //     console.log(' Last user message: ', userMessage);
-            //     captureLeadInfo();
-            //     break;
+            case LeadCaptureStage.DECLINED_OFFER:
+                console.log("DECLINED OFFER STATE:");
+                console.log(' Current agent message: ', currentAgentMessage);
+                console.log(' Last user message: ', userMessage);
+
+                // Check if user changed their mind and wants to provide contact info
+                const reengagementTriggers = [
+                    'contact', 'book', 'schedule', 'booking', 'appoinment',
+                    'call me', 'email me', 'schedule', 'appointment',
+                    'changed my mind', 'on second thought', 'contacted', 'speak', 'talk'
+                ];
+
+                const botOfferedReCapture =
+                    (currentAgentMessage.includes('schedule') ||
+                        currentAgentMessage.includes('scheduling') ||
+                        currentAgentMessage.includes('book') ||
+                        currentAgentMessage.includes('booking') ||
+                        currentAgentMessage.includes('appointment') ||
+                        currentAgentMessage.includes('contact')) ||
+                    currentAgentMessage.includes('can i get your') ||
+                    currentAgentMessage.includes('may i have your');
+
+                const wantsToReengage = reengagementTriggers.some(trigger =>
+                    userMessage.toLowerCase().includes(trigger)
+                );
+
+                if (botOfferedReCapture) {
+                    console.log('🔄 Reinitializing lead capture');
+                    transitionStage(leadState, LeadCaptureStage.CAPTURE_INITIALIZED,
+                        'Agent reinitializing lead capture after initial decline');
+                }
+
+                if (wantsToReengage) {
+                    console.log('🔄 User changed mind - reinitializing lead capture');
+                    transitionStage(leadState, LeadCaptureStage.ACCEPTED_OFFER,
+                        'User reconsidered after initial decline');
+                }
+
+                break;
             case LeadCaptureStage.CONFIRMING:
                 const lastAgentMessagePriorToUserConfirming = messages[messages.length - 2]?.content?.toLowerCase() || '';
                 console.log("CONFIRMING OFFER STATE:")

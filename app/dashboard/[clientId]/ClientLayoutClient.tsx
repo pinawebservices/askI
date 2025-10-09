@@ -147,13 +147,6 @@ export default function ClientLayoutClient({
                                 </Link>
                             )}
 
-                            {/* Client Status Badge */}
-                            <span className={`px-2 py-1 rounded text-xs ${
-                                client.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                {client.is_active ? '✅ Active' : '❌ Inactive'}
-              </span>
-
                             <button
                                 onClick={() => router.push('/dashboard/logout')}
                                 className="px-4 py-2 text-sm text-red-600 hover:text-red-800"
@@ -186,6 +179,16 @@ export default function ClientLayoutClient({
                                     : `/dashboard/${clientId}/subscription`}
                                 icon="🤖"
                                 label="Agent Config"
+                                disabled={!hasFeature('agent_config')}
+                                badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
+                            />
+
+                            <SidebarLink
+                                href={hasFeature('agent_config')
+                                    ? `/dashboard/${clientId}/services`
+                                    : `/dashboard/${clientId}/subscription`}
+                                icon="🏷️"
+                                label="Services & Pricing"
                                 disabled={!hasFeature('agent_config')}
                                 badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
                             />
