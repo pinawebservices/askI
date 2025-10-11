@@ -147,13 +147,19 @@ export type Database = {
       }
       client_instructions: {
         Row: {
+          business_hours: string | null
           business_name: string
           business_type: string | null
           client_id: string
           communication_style: string | null
+          contact_address: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
+          emergency_contact: string | null
           formality_level: string | null
           formatting_rules: string | null
+          general_faqs: string | null
           id: string
           lead_capture_process: string | null
           response_time: string | null
@@ -163,13 +169,19 @@ export type Database = {
           widget_primary_color: string | null
         }
         Insert: {
+          business_hours?: string | null
           business_name: string
           business_type?: string | null
           client_id: string
           communication_style?: string | null
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          emergency_contact?: string | null
           formality_level?: string | null
           formatting_rules?: string | null
+          general_faqs?: string | null
           id?: string
           lead_capture_process?: string | null
           response_time?: string | null
@@ -179,13 +191,19 @@ export type Database = {
           widget_primary_color?: string | null
         }
         Update: {
+          business_hours?: string | null
           business_name?: string
           business_type?: string | null
           client_id?: string
           communication_style?: string | null
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          emergency_contact?: string | null
           formality_level?: string | null
           formatting_rules?: string | null
+          general_faqs?: string | null
           id?: string
           lead_capture_process?: string | null
           response_time?: string | null

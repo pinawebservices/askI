@@ -164,7 +164,8 @@ async function triggerPineconeUpdate(clientId: string) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 clientId,
-                forceUpdate: true
+                forceUpdate: true,
+                updateType: 'services'
             }),
         });
 
