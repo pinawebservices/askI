@@ -59,9 +59,19 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
   function initializeWidget(config) {
     // Enhanced markdown parser for structured responses
     function parseMarkdownMessage(content) {
-      // First, convert basic markdown
+      // DEBUG
+      //console.log('🔍 [parseMarkdown] Input:', JSON.stringify(content));
+
+      // First, escape HTML to prevent injection
+      // Then convert basic markdown
       content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      content = content.replace(/\n/g, '<br>');
+      // Convert ALL types of line breaks to <br> tags (handle all line break types)
+      content = content.replace(/\r\n/g, '<br>');  // Windows line breaks
+      content = content.replace(/\n/g, '<br>');     // Unix line breaks
+      content = content.replace(/\r/g, '<br>');     // Old Mac line breaks
+
+      // DEBUG
+      // console.log('🔍 [parseMarkdown] Output:', content);
 
       // Parse structured apartment/service listings with exact formatting
       // Pattern: **Title** followed by **Price:**, **Size/Duration:**, **Includes:**, **Notes:**
@@ -417,7 +427,8 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
 
         const data = await response.json();
         // DEBUG
-        //console.log('📥 [Embed] Response received:', data);
+        // console.log('📥 [Embed] Response received:', data.message);
+        // console.log('📥 [Embed] Message with escaped chars:', JSON.stringify(data.message));
 
         // Remove typing indicator
         hideTypingIndicator();
@@ -600,12 +611,7 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         .listing-card + .listing-card {
           margin-top: 16px !important;
         }
-        
-        /* Hide consecutive line breaks in formatted content */
-        br + br {
-          display: none;
-        }
-        
+
         /* Chat Message Popup - Add these styles here */
   .chat-message-popup {
     position: absolute;
