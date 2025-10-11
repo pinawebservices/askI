@@ -6,8 +6,9 @@ import {NextResponse} from "next/server";
 export async function POST(request) {
 
     try {
-        const { clientId, forceUpdate = false } = await request.json();
-        console.log('Pinecone operation for client:', clientId, 'Force update:', forceUpdate);
+        const body = await request.json();
+        const { clientId, forceUpdate = false, updateType = 'all' } = body;
+        console.log('Pinecone operation for client:', clientId, 'Force update:', forceUpdate, 'updateType:', updateType);
 
         // Get client data
         const { data: client, error: clientError } = await supabaseAdmin
@@ -35,10 +36,20 @@ export async function POST(request) {
             return NextResponse.json({ success: true, action: 'created' });
         } else if (forceUpdate) {
             // Update existing
-            console.log('Updating Pinecone vectors');
-            await setupService.updateClient(clientId, !!client.google_drive_folder_id);
+            console.log(`Updating Pinecone - Type: ${updateType}`);
 
-            return NextResponse.json({ success: true, action: 'updated' });
+            if (updateType === 'agent-config') {
+                // Only update agent config
+                await setupService.updateAgentConfig(clientId);
+            } else if (updateType === 'services') {
+                // Only update services
+                await setupService.updateServicesConfig(clientId);
+            } else {
+                // Full update (backward compatibility)
+                await setupService.updateClient(clientId, !!client.google_drive_folder_id);
+            }
+
+            return NextResponse.json({ success: true, action: 'updated', type: updateType });
         } else {
             return NextResponse.json({ success: true, action: 'already_configured' });
         }

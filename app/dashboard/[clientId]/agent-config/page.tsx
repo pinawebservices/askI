@@ -30,6 +30,12 @@ export default function AgentConfigPage() {
         lead_capture_process: null,
         response_time: '2 hours',
         widget_primary_color: '#000000',
+        business_hours: null,
+        contact_phone: null,
+        contact_email: null,
+        contact_address: null,
+        emergency_contact: null,
+        general_faqs: null,
     });
 
     const [loading, setLoading] = useState(true);
@@ -100,7 +106,13 @@ export default function AgentConfigPage() {
                         formatting_rules: instructions.formatting_rules || null,
                         lead_capture_process: instructions.lead_capture_process || null,
                         response_time: instructions.response_time || null,
-                        widget_primary_color: instructions.widget_primary_color || '#000000'
+                        widget_primary_color: instructions.widget_primary_color || '#000000',
+                        general_faqs: instructions.general_faqs || null,
+                        business_hours: instructions.business_hours || null,
+                        contact_phone: instructions.contact_phone || null,
+                        contact_email: instructions.contact_email || null,
+                        contact_address: instructions.contact_address || null,
+                        emergency_contact: instructions.emergency_contact || null
                     } as any, { onConflict: 'client_id' })
                 .select()
                 .single();
@@ -124,13 +136,19 @@ export default function AgentConfigPage() {
                 console.log('Configuring Pinecone for the first time...');
 
                 // Call the Pinecone setup API
+                const requestBody = {
+                    clientId,
+                    forceUpdate: true,
+                    updateType: 'agent-config'
+                };
+                console.log('Request body being sent:', requestBody);
+
                 const response = await fetch('/api/admin/setup-client-pinecone', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ clientId,
-                        forceUpdate: pineconeClientData?.is_pinecone_configured || false }),
+                    body: JSON.stringify(requestBody),
                 });
 
             if (response.ok) {
@@ -267,88 +285,196 @@ export default function AgentConfigPage() {
                 )}
 
                 <div className="space-y-6">
-                    {/* Business Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Business Name *
-                        </label>
-                        <input
-                            type="text"
-                            value={instructions.business_name || ''}
-                            onChange={(e) => handleInputChange('business_name', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter your business name"
-                            required
-                        />
+                    {/* Business Information Section */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                            Business Information
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            {/* Business Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Name * (as you want the agent to refer to it)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={instructions.business_name || ''}
+                                    onChange={(e) => handleInputChange('business_name', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter your business name"
+                                    required
+                                />
+                            </div>
+
+                            {/* Business Type */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Type
+                                </label>
+                                <select
+                                    value={instructions.business_type || ''}
+                                    onChange={(e) => handleInputChange('business_type', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Select business type...</option>
+
+                                    <optgroup label="Legal & Financial">
+                                        <option value="law_firm">Law Firm</option>
+                                        <option value="accounting_firm">Accounting Firm</option>
+                                        <option value="tax_preparation">Tax Preparation Service</option>
+                                        <option value="financial_advisor">Financial Advisory</option>
+                                        <option value="insurance_agency">Insurance Agency</option>
+                                    </optgroup>
+
+                                    <optgroup label="Medical & Healthcare">
+                                        <option value="medical_practice">Medical Practice</option>
+                                        <option value="dental_practice">Dental Practice</option>
+                                        <option value="optometry">Optometry Clinic</option>
+                                        <option value="veterinary">Veterinary Clinic</option>
+                                        <option value="mental_health">Mental Health Practice</option>
+                                        <option value="physical_therapy">Physical Therapy</option>
+                                        <option value="chiropractic">Chiropractic Clinic</option>
+                                    </optgroup>
+
+                                    <optgroup label="Real Estate & Property">
+                                        <option value="real_estate">Real Estate Agency</option>
+                                        <option value="property_management">Property Management</option>
+                                        <option value="mortgage_broker">Mortgage Broker</option>
+                                    </optgroup>
+
+                                    <optgroup label="Home Services">
+                                        <option value="hvac">HVAC Services</option>
+                                        <option value="plumbing">Plumbing Services</option>
+                                        <option value="electrical">Electrical Services</option>
+                                        <option value="roofing">Roofing Contractor</option>
+                                        <option value="general_contractor">General Contractor</option>
+                                        <option value="cleaning_service">Cleaning Service</option>
+                                    </optgroup>
+
+                                    <optgroup label="Beauty & Wellness">
+                                        <option value="beauty_salon">Beauty Salon</option>
+                                        <option value="barbershop">Barbershop</option>
+                                        <option value="spa">Spa & Wellness Center</option>
+                                        <option value="fitness_center">Fitness Center/Gym</option>
+                                    </optgroup>
+
+                                    <optgroup label="Automotive">
+                                        <option value="auto_repair">Auto Repair Shop</option>
+                                        <option value="auto_dealership">Auto Dealership</option>
+                                        <option value="auto_detailing">Auto Detailing</option>
+                                    </optgroup>
+
+                                    <optgroup label="Education & Consulting">
+                                        <option value="tutoring">Tutoring Service</option>
+                                        <option value="consulting">Business Consulting</option>
+                                        <option value="marketing_agency">Marketing Agency</option>
+                                    </optgroup>
+
+                                    <option value="other">Other Professional Service</option>
+                                </select>
+                            </div>
+
+                            {/* Business Hours */}
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Hours
+                                </label>
+                                <textarea
+                                    value={instructions.business_hours || ''}
+                                    onChange={(e) => handleInputChange('business_hours', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder={`Example:
+Regular Hours:
+Monday-Friday: 9:00 AM - 6:00 PM
+Saturday: 10:00 AM - 4:00 PM
+Sunday: Closed
+
+Holidays:
+Closed: New Year's Day, Memorial Day, July 4th, Labor Day, Thanksgiving, Christmas
+Modified Hours: Christmas Eve (9 AM - 1 PM), New Year's Eve (9 AM - 3 PM)
+Open Regular Hours: Martin Luther King Jr. Day, Presidents' Day, Columbus Day, Veterans Day
+
+Note: Emergency services available 24/7 at (555) 999-1234`}
+                                    rows={12}
+                                />
+                            </div>
+
+                            {/* Contact Phone */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Primary Contact Phone Number <span className="text-xs text-gray-500 ml-2">(Optional)</span>
+                                </label>
+                                <label className="block text-sm font-normal text-gray-700 mb-1">
+                                    This number will be provided if the prospect requests it.
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={instructions.contact_phone || ''}
+                                    onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="(555) 123-4567"
+                                />
+                            </div>
+
+                            {/* Contact Email */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Primary Contact Email Address <span className="text-xs text-gray-500 ml-2">(Optional)</span>
+                                </label>
+                                <label className="block text-sm font-normal text-gray-700 mb-1">
+                                    This email will be provided if the prospect requests it.
+                                </label>
+                                <input
+                                    type="email"
+                                    value={instructions.contact_email || ''}
+                                    onChange={(e) => handleInputChange('contact_email', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="support@business.com"
+                                />
+                            </div>
+
+                            {/* Business Address */}
+                            <div className="md:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Address <span className="text-xs text-gray-500 ml-2">(Optional)</span>
+                                </label>
+                                <textarea
+                                    value={instructions.contact_address || ''}
+                                    onChange={(e) => handleInputChange('contact_address', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="123 Main Street, Suite 100
+Palm Beach Gardens, FL 33410"
+                                    rows={2}
+                                />
+                            </div>
+
+                            {/* Emergency/After-Hours Contact */}
+                            <div className="md:col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Emergency/After-Hours Contact
+                                    <span className="text-xs text-gray-500 ml-2">(Optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={instructions.emergency_contact || ''}
+                                    onChange={(e) => handleInputChange('emergency_contact', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder={`Call (555) 999-1234 or email emergency@business.com`}
+                                />
+                            </div>
+
+                            <label className="block text-sm font-normal text-gray-700 mb-1 md:col-span-2">
+                                <span><b>Note:</b> </span> If no contact information is provided the agent will capture the lead and let the user know someone will get back to them.
+                            </label>
+                        </div>
                     </div>
 
-                    {/* Business Type */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Business Type
-                        </label>
-                        <select
-                            value={instructions.business_type || ''}
-                            onChange={(e) => handleInputChange('business_type', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Select business type...</option>
-
-                            <optgroup label="Legal & Financial">
-                                <option value="law_firm">Law Firm</option>
-                                <option value="accounting_firm">Accounting Firm</option>
-                                <option value="tax_preparation">Tax Preparation Service</option>
-                                <option value="financial_advisor">Financial Advisory</option>
-                                <option value="insurance_agency">Insurance Agency</option>
-                            </optgroup>
-
-                            <optgroup label="Medical & Healthcare">
-                                <option value="medical_practice">Medical Practice</option>
-                                <option value="dental_practice">Dental Practice</option>
-                                <option value="optometry">Optometry Clinic</option>
-                                <option value="veterinary">Veterinary Clinic</option>
-                                <option value="mental_health">Mental Health Practice</option>
-                                <option value="physical_therapy">Physical Therapy</option>
-                                <option value="chiropractic">Chiropractic Clinic</option>
-                            </optgroup>
-
-                            <optgroup label="Real Estate & Property">
-                                <option value="real_estate">Real Estate Agency</option>
-                                <option value="property_management">Property Management</option>
-                                <option value="mortgage_broker">Mortgage Broker</option>
-                            </optgroup>
-
-                            <optgroup label="Home Services">
-                                <option value="hvac">HVAC Services</option>
-                                <option value="plumbing">Plumbing Services</option>
-                                <option value="electrical">Electrical Services</option>
-                                <option value="roofing">Roofing Contractor</option>
-                                <option value="general_contractor">General Contractor</option>
-                                <option value="cleaning_service">Cleaning Service</option>
-                            </optgroup>
-
-                            <optgroup label="Beauty & Wellness">
-                                <option value="beauty_salon">Beauty Salon</option>
-                                <option value="barbershop">Barbershop</option>
-                                <option value="spa">Spa & Wellness Center</option>
-                                <option value="fitness_center">Fitness Center/Gym</option>
-                            </optgroup>
-
-                            <optgroup label="Automotive">
-                                <option value="auto_repair">Auto Repair Shop</option>
-                                <option value="auto_dealership">Auto Dealership</option>
-                                <option value="auto_detailing">Auto Detailing</option>
-                            </optgroup>
-
-                            <optgroup label="Education & Consulting">
-                                <option value="tutoring">Tutoring Service</option>
-                                <option value="consulting">Business Consulting</option>
-                                <option value="marketing_agency">Marketing Agency</option>
-                            </optgroup>
-
-                            <option value="other">Other Professional Service</option>
-                        </select>
-                    </div>
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                            Communication Style
+                        </h3>
 
                     {/* Two Column Layout for Style Options */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -427,22 +553,52 @@ export default function AgentConfigPage() {
                             </select>
                         </div>
                     </div>
+                    </div>
 
-                    {/* Special Instructions */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Special Instructions
-                            <span className="text-sm text-gray-500 ml-2">
+                    {/* Add General FAQs Section - Place this after Special Instructions or wherever you prefer */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                            Business Context
+                        </h3>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business FAQs
+                                <span className="text-xm text-gray-500 ml-2">(General questions about your business)</span>
+                            </label>
+                            <label className="block text-sm font-normal text-gray-700 mb-1">
+                                These FAQs will help the agent answer common questions about your business. Each Q&A pair should be on separate lines.
+                            </label>
+                            <textarea
+                                value={instructions.general_faqs || ''}
+                                onChange={(e) => handleInputChange('general_faqs', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font text-xm"
+                                placeholder={`Question: What are your business hours?
+Answer: We're open Monday through Friday from 9 AM to 6 PM, and Saturday from 10 AM to 4 PM. We're closed on Sundays and major holidays.
+
+Question: What areas do you serve?
+Answer: We serve the entire Palm Beach County area, including West Palm Beach, Boca Raton, and Jupiter. Virtual consultations are available statewide.
+
+Question: What forms of payment do you accept?
+Answer: We accept cash, check, and all major credit cards. Payment plans are available for qualifying services.`}
+                                rows={12}
+                            />
+                        </div>
+                        {/* Special Instructions */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Special Instructions
+                                <span className="text-sm text-gray-500 ml-2">
                                 (Always mention, emphasize, or avoid)
                             </span>
-                        </label>
-                        <textarea
-                            value={instructions.special_instructions || ''}
-                            onChange={(e) => handleInputChange('special_instructions', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Example: Always mention our new client discount of 20%. Emphasize our holistic approach to wellness. Never discuss specific medical diagnoses."
-                            rows={4}
-                        />
+                            </label>
+                            <textarea
+                                value={instructions.special_instructions || ''}
+                                onChange={(e) => handleInputChange('special_instructions', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Example: Always mention our new client discount of 20%. Emphasize our holistic approach to wellness. Never discuss specific medical diagnoses."
+                                rows={4}
+                            />
+                        </div>
                     </div>
 
                     {/* Widget Appearance */}

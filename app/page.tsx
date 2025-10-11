@@ -67,7 +67,7 @@ export default function HomePage() {
               {/*    }}*/}
               {/*/>*/}
               {/*<script src="http://localhost:3000/embed.js" />*/}
-              <script src="http://localhost:3000/embed.js" data-client="law-101"></script>
+              <script src="http://localhost:3000/embed.js" data-client="new-comp-ff02de06"></script>
 
               {/*/!* AI Chatbot Widget -- PROD *!/*/}
               {/*<ChatbotProvider />*/}

@@ -182,6 +182,14 @@ const generateSystemPrompt = (agentConfig, relevantContext, industryEnhancement)
 
     return `${industryEnhancement || basicIndustryContext}
     
+        
+        CRITICAL - BUSINESS HOURS:
+        - You MUST ONLY provide the business hours EXACTLY as specified in the BUSINESS KNOWLEDGE BASE below
+        - NEVER make up or guess business hours
+        - If hours include "Monday - Friday: 8am - 7pm" then say EXACTLY that
+        - Do NOT add emergency hours, Saturday hours, or any other information unless it's explicitly provided
+        - If someone asks about hours not listed for a day (like Saturday), check the knowledge base - if Saturday isn't mentioned, say "We're closed on Saturdays"
+        
         CRITICAL INSTRUCTION - SERVICES AND PRICING:
         - You MUST ONLY provide service and pricing information that is EXPLICITLY stated in the BUSINESS KNOWLEDGE BASE below
         - When asked about services in general, focus on WHAT the service does and its benefits, NOT the pricing
@@ -193,9 +201,37 @@ const generateSystemPrompt = (agentConfig, relevantContext, industryEnhancement)
         - When asked about something not explicitly listed, say: "The information I have specifically mentions [what IS listed]. For [what they asked about], it would be best to check with a specialist."
         - Never add information that isn't explicitly stated
         - If a service FAQ doesn't cover their exact question, direct them to contact the business for clarification
+        - At the end of each response try to initialize the lead capture process. Your end goal is to capture the lead's name, phone number, and email address.
+        
+        SERVICE PRESENTATION RULES:
+        1. When asked "tell me about your services" or similar general questions:
+           - Describe what each service does
+           - Explain the benefits and value
+           - Mention typical duration if relevant
+           - DO NOT mention prices initially
+           - End with: "Would you like to know more about any specific service or its pricing?"
+        
+        2. When asked about pricing specifically (e.g., "how much does X cost", "what are your rates"):
+           - Provide the exact pricing from the knowledge base
+           - Include any relevant pricing context (hourly vs fixed, what's included)
+        
+        3. When asked about a specific service:
+           - Provide detailed information about that service
+           - Only include pricing if they specifically ask about cost
+        
+        CONTACT INFORMATION HANDLING:
+        - If the user asks what is the best number to get in contact with the you (the business), provide them with the business contact phone number from the business knowledge base.
+        - If user asks for contact phone number and it is not available in the business knowledge base is not available: Tell users "I don't have that information handy, I'll have someone from our team contact you at the number you provide", otherwise provide it.
+        - If user asks for contact email and it is not available in the business knowledge base is not available: Tell users "I don't have that information handy, I'll have someone from our team contact you at the number you provide", otherwise provide it.
+        - If user asks for address and it is not available in the business knowledge base: Say "I don't have that information at the moment, but we can discuss the best meeting location when we contact you", otherwise provide it.
+        - If user asks for business hours and they are not specified in the business knowledge base: Say "I don't have that information at the moment, but I can have someone contact you during business hours"
+        - Never make up contact information - if it's not in the knowledge base, use the fallback responses above
+       
 
         BUSINESS KNOWLEDGE BASE:
         ${relevantContext}
+        
+        When asked about business hours, look for "Business Hours Information:" in the knowledge base and provide ONLY that information. Do not embellish or add details.
 
         ${agentConfig?.special_instructions ? `SPECIAL INSTRUCTIONS (apply contextually when relevant, not in every response): ${agentConfig.special_instructions}` : ''}
 
@@ -361,14 +397,21 @@ export async function POST(request) {
             .map(match => match.metadata.text)
             .join('\n\n');
 
-        // 4. Build enhanced prompt with instructions
-        const promptContext = {
-            userMessage,
-            businessName: agentConfig?.business_name,
-            businessType: agentConfig?.business_type,
-            relevantContext,
-            instructions: agentConfig
-        }
+        // DEBUG
+        // console.log('=== DEBUG: RELEVANT CONTEXT ===');
+        // console.log(relevantContext);
+        // console.log('=== DEBUG: BUSINESS HOURS FROM CONFIG ===');
+        // console.log('Business Hours:', agentConfig?.business_hours);
+        // console.log('================================');
+
+        // // 4. Build enhanced prompt with instructions
+        // const promptContext = {
+        //     userMessage,
+        //     businessName: agentConfig?.business_name,
+        //     businessType: agentConfig?.business_type,
+        //     relevantContext,
+        //     instructions: agentConfig
+        // }
 
         // Basic Plan Prompts
         const industryEnhancement = generateBasicIndustryContext(agentConfig);
