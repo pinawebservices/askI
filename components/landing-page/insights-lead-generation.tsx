@@ -25,7 +25,7 @@ export function LeadGenerationInsight() {
                                 </div>
 
                                 <div className="py-4">
-                                    <div className="text-3xl font-bold text-gray-900">391%</div>
+                                    <div className="text-3xl font-bold text-gray-900">4x</div>
                                     <div className="text-sm text-gray-600 mt-1">more conversions with 1-minute response.</div>
                                 </div>
 
