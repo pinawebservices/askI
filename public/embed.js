@@ -44,12 +44,9 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         initializeWidget({
           ...config,
           // Add any defaults
-          businessName: 'AI Assistant',
-          theme: {
-            primaryColor: '#000000',
-            textColor: '#ffffff',
-            ...config.theme
-          }
+          businessName: config.businessName,
+          welcomeMessage: config.welcomeMessage,
+          theme: config.theme
         });
       })
       .catch(error => {
@@ -93,7 +90,7 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
 
     // Create widget container
     const widgetContainer = document.createElement("div");
-    widgetContainer.id = "ai-chatbot-widget";
+    widgetContainer.id = "ai-agent-widget";
     widgetContainer.style.cssText = `
     position: fixed;
     bottom: 20px;
@@ -107,7 +104,7 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
     let messages = [
       {
         role: "assistant",
-        content: `Hi! Welcome to ${config.businessName}. How can I help you today?`,
+        content: config.welcomeMessage || `Hi! Welcome to ${config.businessName}. How can I help you today?`,
         timestamp: new Date(),
       },
     ];
@@ -243,8 +240,8 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
         align-items: center;
       ">
         <div>
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600;">${config.businessName}</h3>
-          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">We&apos;re here to help!</p>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600;">${config.businessName || 'AI Assistant'}</h3>
+          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Powered by AIWidgetWise.</p>
         </div>
         <button id="close-chat" style="
           background: none;

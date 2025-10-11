@@ -22,7 +22,9 @@ export async function GET(
         .eq('client_id', clientId)
         .single();
 
-    console.log('2. Database query result:', { client, error });
+    // DEBUG
+    console.log('2. Database query result:');
+    // console.log('2. Database query result:', { client, error });
 
     // Check each condition separately for debugging
     if (error) {
@@ -45,7 +47,16 @@ export async function GET(
         return NextResponse.json({ error: 'No API key configured' }, { status: 403 });
     }
 
-    console.log('4. All checks passed, returning config');
+    // Fetch client instructions for widget settings
+    const { data: instructions } = await supabaseAdmin
+        .from('client_instructions')
+        .select('business_name, widget_settings')
+        .eq('client_id', clientId)
+        .single();
+
+    // DEBUG
+    console.log('4. Instructions data');
+    // console.log('4. Instructions data:', instructions);
 
     // Auto-add domain if it's new (optional)
     if (domain && !client.allowed_domains?.includes(domain)) {
@@ -65,9 +76,25 @@ export async function GET(
         }
     }
 
+    const widgetSettings = (instructions?.widget_settings as any) || {};
+    const businessName = instructions?.business_name || 'Our Business';
+
+    // Generate welcome message with fallback
+    const welcomeMessage = widgetSettings.welcomeMessage ||
+        `Hi! Welcome to ${businessName}. How can I help you today?`;
+
+    console.log('5. All checks passed, returning config');
+
     // Return configuration
     return NextResponse.json({
         apiKey: client.api_key,
         apiUrl: process.env.NEXT_PUBLIC_APP_URL,
+        businessName: businessName,
+        welcomeMessage: welcomeMessage,
+        theme: {
+            primaryColor: widgetSettings.primaryColor || '#000000',
+            position: widgetSettings.position || 'bottom-right',
+            autoOpen: widgetSettings.autoOpen || false
+        }
     });
 }

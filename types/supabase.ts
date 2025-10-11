@@ -166,7 +166,7 @@ export type Database = {
           special_instructions: string | null
           tone_style: string | null
           updated_at: string | null
-          widget_primary_color: string | null
+          widget_settings: Json | null
         }
         Insert: {
           business_hours?: string | null
@@ -188,7 +188,7 @@ export type Database = {
           special_instructions?: string | null
           tone_style?: string | null
           updated_at?: string | null
-          widget_primary_color?: string | null
+          widget_settings?: Json | null
         }
         Update: {
           business_hours?: string | null
@@ -210,7 +210,7 @@ export type Database = {
           special_instructions?: string | null
           tone_style?: string | null
           updated_at?: string | null
-          widget_primary_color?: string | null
+          widget_settings?: Json | null
         }
         Relationships: []
       }

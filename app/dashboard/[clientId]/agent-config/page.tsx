@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase-client';
 import { useRouter, useParams } from 'next/navigation';
 import type { Database } from '@/types/supabase';
+import {Json} from "@/types/supabase";
 
 type ClientInstructions = Database['public']['Tables']['client_instructions']['Row'];
 
@@ -29,7 +30,7 @@ export default function AgentConfigPage() {
         formatting_rules: null,
         lead_capture_process: null,
         response_time: '2 hours',
-        widget_primary_color: '#000000',
+        widget_settings: null,
         business_hours: null,
         contact_phone: null,
         contact_email: null,
@@ -53,6 +54,43 @@ export default function AgentConfigPage() {
 
         loadInstructions();
     }, ); // Empty dependency array - only run once
+
+    const handleInputChange = (field: string, value: any) => {
+        setInstructions(prev => {
+            if (!prev) return prev;
+
+            // Handle widget_settings specially to ensure valid Json
+            if (field === 'widget_settings') {
+                const validValue = value ?? {};
+                return {
+                    ...prev,
+                    widget_settings: validValue as Json
+                };
+            }
+
+            // Handle widget_settings nested fields
+            if (field.startsWith('widget_settings.')) {
+                const subField = field.replace('widget_settings.', '');
+                const currentSettings = prev.widget_settings
+                    ? (prev.widget_settings as any)
+                    : {};
+
+                return {
+                    ...prev,
+                    widget_settings: {
+                        ...currentSettings,
+                        [subField]: value
+                    } as Json
+                };
+            }
+
+            // Handle direct fields
+            return {
+                ...prev,
+                [field]: value
+            };
+        });
+    };
 
     async function loadInstructions() {
         try {
@@ -82,38 +120,31 @@ export default function AgentConfigPage() {
     }
 
     async function saveInstructions() {
-        try {
-            setSaving(true);
-            setError(null);
+        if (!instructions.business_name) {
+            setError('Business name is required');
+            return;
+        }
 
-            if (!instructions.business_name) {
-                setError('Business name is required');
-                setSaving(false);
-                return;
-            }
+        setSaving(true);
+        setError(null);
+
+        try {
+
+            // Clean up the data to save, ensure widget_settings has defaults
+            const updateData: any = {
+                ...instructions,
+                client_id: clientId,
+                widget_settings: instructions.widget_settings || {
+                    primaryColor: '#000000',
+                    welcomeMessage: ''
+                },
+                updated_at: new Date().toISOString()
+            };
 
             const { data: savedData, error: saveError } = await supabase
                 .from('client_instructions')
-                .upsert(
-                    {
-                        client_id: clientId,
-                        business_name: instructions.business_name,
-                        business_type: instructions.business_type || null,
-                        tone_style: instructions.tone_style || null,
-                        communication_style: instructions.communication_style || null,
-                        formality_level: instructions.formality_level || null,
-                        special_instructions: instructions.special_instructions || null,
-                        formatting_rules: instructions.formatting_rules || null,
-                        lead_capture_process: instructions.lead_capture_process || null,
-                        response_time: instructions.response_time || null,
-                        widget_primary_color: instructions.widget_primary_color || '#000000',
-                        general_faqs: instructions.general_faqs || null,
-                        business_hours: instructions.business_hours || null,
-                        contact_phone: instructions.contact_phone || null,
-                        contact_email: instructions.contact_email || null,
-                        contact_address: instructions.contact_address || null,
-                        emergency_contact: instructions.emergency_contact || null
-                    } as any, { onConflict: 'client_id' })
+                .upsert(updateData)
+                .eq('client_id', clientId)
                 .select()
                 .single();
 
@@ -177,13 +208,6 @@ export default function AgentConfigPage() {
             setSaving(false);
         }
     }
-
-    const handleInputChange = (field: keyof ClientInstructions, value: string) => {
-        setInstructions(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
 
     async function retryPineconeSetup() {
         setWarningMessage(null);
@@ -605,28 +629,48 @@ Answer: We accept cash, check, and all major credit cards. Payment plans are ava
                     <div className="bg-white rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold mb-4">Widget Appearance</h2>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Primary Color
-                            </label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="color"
-                                    value={instructions.widget_primary_color || '#000000'}
-                                    onChange={(e) => handleInputChange('widget_primary_color', e.target.value)}
-                                    className="h-10 w-20"
-                                />
-                                <input
-                                    type="text"
-                                    value={instructions.widget_primary_color || '#000000'}
-                                    onChange={(e) => handleInputChange('widget_primary_color', e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="#2563EB"
-                                />
+                        <div className="space-y-4">
+                            {/* Primary Color */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Primary Color
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="color"
+                                        value={(instructions.widget_settings as any)?.primaryColor || '#000000'}
+                                        onChange={(e) => handleInputChange('widget_settings.primaryColor', e.target.value)}
+                                        className="h-10 w-20"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={(instructions.widget_settings as any)?.primaryColor || '#000000'}
+                                        onChange={(e) => handleInputChange('widget_settings.primaryColor', e.target.value)}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="#2563EB"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    This color will be used for your chat agent widget header and buttons.
+                                </p>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">
-                                This color will be used for your chat agent widget.
-                            </p>
+
+                            {/* Welcome Message */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Welcome Message
+                                </label>
+                                <textarea
+                                    value={(instructions.widget_settings as any)?.welcomeMessage || ''}
+                                    onChange={(e) => handleInputChange('widget_settings.welcomeMessage', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder={`Hi! Welcome to ${instructions.business_name || '[Your Business]'}. How can I help you today?`}
+                                    rows={3}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    The greeting message that appears when customers open the chat widget. Leave empty to use default.
+                                </p>
+                            </div>
                         </div>
                     </div>
 
