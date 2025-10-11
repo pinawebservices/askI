@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSubscription } from '@/app/contexts/subscription-context';
 import { createClient } from '@/lib/supabase-client';
+import {Json} from "@/types/supabase";
 
 interface SettingsPageProps {
     params: Promise<{
@@ -22,9 +23,9 @@ interface ClientSettings {
         welcomeMessage?: string;
     };
     api_key?: string | null;
-    webhook_url?: string | null;
     notification_email?: string | null;
     notification_phone?: string | null;
+    notification_preferences: Json| null;
     enable_sms_notifications?: boolean | null;
 }
 
@@ -98,17 +99,33 @@ export default function SettingsPage({ params }: SettingsPageProps) {
         setSettings(prev => {
             if (!prev) return null;
 
-            if (field.startsWith('widget_settings.')) {
-                const subField = field.replace('widget_settings.', '');
+            // Handle notification_preferences specially to ensure valid Json
+            if (field === 'notification_preferences') {
+                // Ensure value is never undefined, use empty object as fallback
+                const validValue = value ?? {};
                 return {
                     ...prev,
-                    widget_settings: {
-                        ...prev.widget_settings,
-                        [subField]: value
-                    }
+                    notification_preferences: validValue as Json
                 };
             }
 
+            // Handle notification_preferences nested fields
+            if (field.startsWith('notification_preferences.')) {
+                const subField = field.replace('notification_preferences.', '');
+                const currentPrefs = prev.notification_preferences
+                    ? (prev.notification_preferences as any)
+                    : {};
+
+                return {
+                    ...prev,
+                    notification_preferences: {
+                        ...currentPrefs,
+                        [subField]: value
+                    } as Json
+                };
+            }
+
+            // Handle direct fields
             return {
                 ...prev,
                 [field]: value
@@ -144,6 +161,38 @@ export default function SettingsPage({ params }: SettingsPageProps) {
     //     }
     // };
 
+    const saveSettings = async () => {
+        if (!settings) return;
+
+        setSaving(true);
+
+        try {
+            const updateData: any = {
+                notification_email: settings.notification_email,
+                notification_phone: settings.notification_phone,
+                notification_preferences: settings.notification_preferences
+            };
+
+            const { error } = await supabase
+                .from('clients')
+                .update(updateData)
+                .eq('client_id', clientId);
+
+            if (error) throw error;
+
+            // Show success message (we'll improve this later with a toast)
+            alert('Settings saved successfully!');
+
+            // Regenerate embed code with new settings
+            generateEmbedCode(settings);
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            alert('Failed to save settings. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -159,69 +208,111 @@ export default function SettingsPage({ params }: SettingsPageProps) {
         <div className="p-6 max-w-6xl mx-auto">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-                <p className="text-gray-600 mt-1">Configure your chatbot and account settings</p>
             </div>
 
             <div className="grid gap-6">
 
                 {/* Notifications */}
                 <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-lg font-semibold mb-4">Notification Settings</h2>
+                    <h2 className="text-lg font-semibold mb-4">Notifications</h2>
 
                     <div className="grid gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Notification Email
+                                Email Notifications
                             </label>
                             <input
                                 type="email"
                                 value={settings?.notification_email || ''}
                                 onChange={(e) => handleSettingChange('notification_email', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                placeholder="admin@example.com"
+                                placeholder="notifications@example.com"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Email address where new lead notifications will be sent (leave empty to use account email)
+                            </p>
                         </div>
 
-                        {(planType as string) !== 'basic' && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Notification Phone {planType === 'basic' && '(Pro+ Required)'}
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={settings?.notification_phone || ''}
-                                        onChange={(e) => handleSettingChange('notification_phone', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        placeholder="+1 (555) 123-4567"
-                                        disabled={planType === 'basic'}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={settings?.enable_sms_notifications || false}
-                                            onChange={(e) => handleSettingChange('enable_sms_notifications', e.target.checked)}
-                                            className="mr-2"
-                                            disabled={planType === 'basic'}
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">
-                                            Enable SMS notifications {planType === 'basic' && '(Pro+ Required)'}
-                                        </span>
-                                    </label>
-                                </div>
-                            </>
+                        {/* Show current notification status */}
+                        {settings?.notification_email && (
+                            <div className={`p-3 rounded-md ${
+                                (settings.notification_preferences as any)?.email_enabled !== false
+                                    ? 'bg-green-50'
+                                    : 'bg-gray-50'
+                            }`}>
+                                <p className={`text-sm ${
+                                    (settings.notification_preferences as any)?.email_enabled !== false
+                                        ? 'text-green-800'
+                                        : 'text-gray-600'
+                                }`}>
+                                    {(settings.notification_preferences as any)?.email_enabled !== false ? (
+                                        <>✓ Email notifications active - Sending to: {settings.notification_email}</>
+                                    ) : (
+                                        <>⏸ Email notifications paused - Email saved: {settings.notification_email}</>
+                                    )}
+                                </p>
+                            </div>
                         )}
+
+                        {/* SMS Notifications - Coming Soon */}
+                        <div className="opacity-50">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                SMS Notifications (Coming Soon - Pro Tier)
+                            </label>
+                            <input
+                                type="tel"
+                                value={settings?.notification_phone || ''}
+                                onChange={(e) => handleSettingChange('notification_phone', e.target.value)}
+                                placeholder="+1 (555) 123-4567"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-not-allowed"
+                                disabled
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                SMS notifications will be available in the Pro tier
+                            </p>
+                        </div>
+
+                        {/* Additional Preferences (if needed) */}
+                        <div className="border-t pt-4">
+                            <h3 className="text-sm font-medium text-gray-700 mb-2">
+                                Notification Preferences
+                            </h3>
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={
+                                        settings?.notification_preferences
+                                            ? (settings.notification_preferences as any).email_enabled !== false
+                                            : true  // default checked
+                                    }
+                                    onChange={(e) => {
+                                        const current = settings?.notification_preferences as any || {};
+                                        setSettings(prev => {
+                                            if (!prev) return null;
+                                            return {
+                                                ...prev,
+                                                notification_preferences: {
+                                                    ...current,
+                                                    email_enabled: e.target.checked
+                                                }
+                                            };
+                                        });
+                                    }}
+                                    className="rounded border-gray-300"
+                                />
+                                <span className="text-sm text-gray-600">
+                    Enable email notifications for new leads
+                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
                     <button
-                        // onClick={saveSettings}
-                        disabled={saving}
+                        onClick={saveSettings}
+                        disabled={saving || !settings}
                         className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
                     >
                         {saving ? 'Saving...' : 'Save Settings'}

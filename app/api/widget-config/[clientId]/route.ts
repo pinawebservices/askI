@@ -22,7 +22,9 @@ export async function GET(
         .eq('client_id', clientId)
         .single();
 
-    console.log('2. Database query result:', { client, error });
+    // DEBUG
+    console.log('2. Database query result:');
+    // console.log('2. Database query result:', { client, error });
 
     // Check each condition separately for debugging
     if (error) {
