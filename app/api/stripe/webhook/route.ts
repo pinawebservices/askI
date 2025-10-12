@@ -39,9 +39,28 @@ export async function POST(req: NextRequest) {
 
                         const {organization_id, plan_type} = session.metadata!;
 
+                        const stripeCustomerId = session.customer as string;
+
+                        // First, ensure the customer exists in stripe_customers table
+                        const { error: customerError } = await supabaseAdmin
+                            .from('stripe_customers')
+                            .upsert({
+                                stripe_customer_id: stripeCustomerId,
+                                organization_id,
+                                email: session.customer_email || session.customer_details?.email,
+                            }, {
+                                onConflict: 'stripe_customer_id'
+                            });
+
+                        if (customerError) {
+                            console.error('Customer upsert error:', customerError);
+                        } else {
+                            console.log('Successfully upserted stripe customer');
+                        }
+
                         const insertData = {
                             organization_id,
-                            stripe_customer_id: session.customer as string,
+                            stripe_customer_id: stripeCustomerId,
                             stripe_subscription_id: subscription.id,
                             stripe_price_id: subscription.items.data[0].price.id,
                             plan_type,

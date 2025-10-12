@@ -61,8 +61,25 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8">
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-white">
+
+            {/* Background gradient orbs - same as landing page */}
+            <div className="absolute inset-0 bg-white">
+                {/* Orb 1 - Top Left */}
+                <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-400 opacity-20 blur-3xl" />
+
+                {/* Orb 2 - Top Right */}
+                <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-teal-400 opacity-15 blur-3xl" />
+
+                {/* Orb 3 - Bottom Left */}
+                <div className="absolute bottom-[-20%] left-[10%] w-[400px] h-[400px] rounded-full bg-purple-400 opacity-15 blur-3xl" />
+
+                {/* Orb 4 - Center */}
+                <div className="absolute top-[40%] left-[40%] w-[300px] h-[300px] rounded-full bg-cyan-300 opacity-10 blur-3xl" />
+            </div>
+
+            <div className="relative z-10 max-w-md w-full">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-8 border border-gray-100">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                         Sign in to your account
@@ -119,17 +136,17 @@ export default function LoginPage() {
 
                     {/* Remember me and Forgot password */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <input
-                                id="remember-me"
-                                name="remember-me"
-                                type="checkbox"
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                                Remember me
-                            </label>
-                        </div>
+                        {/*<div className="flex items-center">*/}
+                        {/*    <input*/}
+                        {/*        id="remember-me"*/}
+                        {/*        name="remember-me"*/}
+                        {/*        type="checkbox"*/}
+                        {/*        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"*/}
+                        {/*    />*/}
+                        {/*    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">*/}
+                        {/*        Remember me*/}
+                        {/*    </label>*/}
+                        {/*</div>*/}
 
                         <div className="text-sm">
                             <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
@@ -169,6 +186,7 @@ export default function LoginPage() {
             </span>
                     </div>
                 </form>
+            </div>
             </div>
         </div>
     );

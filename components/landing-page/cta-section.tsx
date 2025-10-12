@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import {useRouter} from "next/navigation";
 
 export function CtaSection() {
+
+    const router = useRouter();
+
     return (
         <section className="px-6 py-20 lg:px-8 sm:py-32"
                  style={{
@@ -21,9 +25,14 @@ export function CtaSection() {
                         and see the difference in just minutes.
                     </p>
                     <div className="mt-10 flex items-center justify-center">
-                        <Button size="lg" variant="secondary" className="font-medium">
+                        <Button
+                            size="lg"
+                            variant="secondary"
+                            className="font-medium group"
+                            onClick={() => router.push('/signup')}
+                        >
                             Start Free Trial
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Button>
                         {/*<Button*/}
                         {/*    size="lg"*/}

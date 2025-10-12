@@ -16,7 +16,7 @@ const plans = [
     {
         id: 'basic',
         name: "Basic",
-        price: "$97",
+        price: "$99",
         description: "Perfect for small businesses getting started with AI automation",
         features: [
             "1,000 conversations per month",
@@ -26,11 +26,12 @@ const plans = [
             "Simple analytics dashboard"
         ],
         popular: false,
+        comingSoon: false,
     },
     {
         id: 'pro',
         name: "Professional",
-        price: "$197",
+        price: "$199",
         description: "Ideal for growing businesses needing advanced features",
         features: [
             "5,000 conversations per month",
@@ -42,11 +43,12 @@ const plans = [
             "Lead scoring & qualification"
         ],
         popular: true,
+        comingSoon: true,
     },
     {
         id: 'premium',
         name: "Premium",
-        price: "$497",
+        price: "$499",
         description: "For enterprises requiring unlimited scale and white-glove service",
         features: [
             "Unlimited conversations",
@@ -59,6 +61,7 @@ const plans = [
             "SLA guarantee"
         ],
         popular: false,
+        comingSoon: true,
     },
 ];
 
@@ -110,8 +113,10 @@ export function PricingCards({ mode = 'landing', onSelectPlan, currentPlan }: Pr
                     {plans.map((plan) => (
                         <Card
                             key={plan.id}
-                            className={`relative ${
-                                plan.popular ? "border-primary shadow-lg" : ""
+                            className={`relative transition-all ${
+                                plan.id === 'basic' ? "lg:scale-105 border-primary shadow-xl" : ""
+                            } ${
+                                plan.comingSoon ? "opacity-60" : ""
                             } ${
                                 currentPlan === plan.id ? "opacity-75" : ""
                             }`}
@@ -128,6 +133,14 @@ export function PricingCards({ mode = 'landing', onSelectPlan, currentPlan }: Pr
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                                     <span className="bg-green-600 text-white px-3 py-1 text-sm font-medium rounded-full">
                                         Current Plan
+                                    </span>
+                                </div>
+                            )}
+
+                            {plan.comingSoon && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                                    <span className="bg-primary text-primary-foreground px-3 py-1 text-sm font-medium rounded-full">
+                                        Coming Soon
                                     </span>
                                 </div>
                             )}
@@ -155,11 +168,11 @@ export function PricingCards({ mode = 'landing', onSelectPlan, currentPlan }: Pr
                             <CardFooter>
                                 <Button
                                     className="w-full"
-                                    variant={plan.popular && currentPlan !== plan.id ? "default" : "outline"}
+                                    variant={plan.id === 'basic' ? "default" : "outline"}
                                     onClick={() => handleSelectPlan(plan.id, plan.price)}
-                                    disabled={loading === plan.id || currentPlan === plan.id}
+                                    disabled={loading === plan.id || currentPlan === plan.id || plan.comingSoon}
                                 >
-                                    {getButtonText(plan.id, plan.price)}
+                                    {plan.comingSoon ? 'Coming Soon' : getButtonText(plan.id, plan.price)}
                                 </Button>
                             </CardFooter>
                         </Card>
