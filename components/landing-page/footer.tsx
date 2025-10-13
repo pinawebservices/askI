@@ -4,7 +4,7 @@ export function FinFooter() {
     return (
         <footer className="bg-foreground text-background">
             <div className="w-full px-8 md:px-16 py-16">
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 text-center max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 text-center max-w-7xl mx-auto">
                     <div className="lg:col-span-1">
                         {/*<div className="flex items-center space-x-2">*/}
                         {/*    <Zap className="h-6 w-6" />*/}
@@ -21,83 +21,52 @@ export function FinFooter() {
                             <span className="text-white text-xl font-semibold">AIWidgetWise</span>
                         </div>
                         <p className="mt-4 text-sm text-background/70">
-                            Transform your workflow and amplify your productivity with our powerful automation platform.
+                            AI-powered chatbot agent that captures leads, answers questions, and supports your customers 24/7—trained on your business knowledge.
                         </p>
                     </div>
 
                     <div>
-                        <h3 className="font-semibold">Product</h3>
+                        <h3 className="font-semibold">Platform</h3>
                         <ul className="mt-4 space-y-2 text-sm text-background/70">
                             <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Features
+                                <a href="/login" className="hover:text-background transition-colors">
+                                    Login
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Integrations
+                                <a href="/signup" className="hover:text-background transition-colors">
+                                    Sign Up
                                 </a>
                             </li>
+                            {/*<li>*/}
+                            {/*    <a href="/#features" className="hover:text-background transition-colors">*/}
+                            {/*        Features*/}
+                            {/*    </a>*/}
+                            {/*</li>*/}
                             <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    API
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Security
+                                <a href="/#pricing" className="hover:text-background transition-colors">
+                                    Pricing
                                 </a>
                             </li>
                         </ul>
                     </div>
 
                     <div>
-                        <h3 className="font-semibold">Company</h3>
+                        <h3 className="font-semibold">Legal & Support</h3>
                         <ul className="mt-4 space-y-2 text-sm text-background/70">
                             <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    About
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Blog
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Careers
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Contact
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 className="font-semibold">Support</h3>
-                        <ul className="mt-4 space-y-2 text-sm text-background/70">
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Help Center
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Documentation
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
-                                    Status
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" className="hover:text-background transition-colors">
+                                <a href="/privacy" className="hover:text-background transition-colors">
                                     Privacy Policy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/terms" className="hover:text-background transition-colors">
+                                    Terms of Service
+                                </a>
+                            </li>
+                            <li>
+                                <a href="mailto:support@aiwidgetwise.com" className="hover:text-background transition-colors">
+                                    Contact Support
                                 </a>
                             </li>
                         </ul>
@@ -105,7 +74,7 @@ export function FinFooter() {
                 </div>
 
                 <div className="mt-12 border-t border-background/20 pt-8">
-                    <p className="text-center text-sm text-background/70">© 2024 StreamLine. All rights reserved.</p>
+                    <p className="text-center text-sm text-background/70">© 2025 AIWidgetWise, LLC. All rights reserved.</p>
                 </div>
             </div>
         </footer>
