@@ -17,13 +17,15 @@ const plans = [
         id: 'basic',
         name: "Basic",
         price: "$99",
-        description: "Perfect for small businesses getting started with AI automation",
+        description: "Capture more leads and provide instant customer support without hiring additional staff.",
         features: [
-            "1,000 conversations per month",
-            "Email notifications for new leads",
-            "Basic AI agent customization",
-            "Standard email support",
-            "Simple analytics dashboard"
+            "AI-Powered Chat Widget",
+            "Self-Service Dashboard",
+            "Deploy on your website in minutes",
+            "Smart Agent Training",
+            "Lead Capture",
+            "Email Notifications",
+            "Unlimited Conversations"
         ],
         popular: false,
         comingSoon: false,
@@ -31,16 +33,15 @@ const plans = [
     {
         id: 'pro',
         name: "Professional",
-        price: "$199",
+        price: "$149",
         description: "Ideal for growing businesses needing advanced features",
         features: [
-            "5,000 conversations per month",
+            "Everything in Basic Plan",
+            "Document Agent Training",
+            "Multi-Email Notifications",
             "Email + SMS notifications",
-            "Google Drive document training",
-            "Advanced customization options",
-            "Priority support",
-            "Detailed analytics & insights",
-            "Lead scoring & qualification"
+            "Lead Dashboard",
+            "Lead Reports"
         ],
         popular: true,
         comingSoon: true,
@@ -48,17 +49,14 @@ const plans = [
     {
         id: 'premium',
         name: "Premium",
-        price: "$499",
-        description: "For enterprises requiring unlimited scale and white-glove service",
+        price: "$199",
+        description: "For established businesses that demand data-driven insights and customization",
         features: [
-            "Unlimited conversations",
-            "All notification channels",
-            "White-glove onboarding",
-            "Custom integrations",
-            "Dedicated account manager",
-            "Custom AI training",
-            "API access",
-            "SLA guarantee"
+            "Everything in Professional Plan",
+            "Analytics Dashboard",
+            "Advanced Widget Customization",
+            "Custom Agent Training",
+            "Priority Support"
         ],
         popular: false,
         comingSoon: true,

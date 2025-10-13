@@ -19,11 +19,13 @@ export function FinHeader() {
             </div>
 
             <div className="flex items-center gap-4">
-                {/*<Button*/}
-                {/*    variant="ghost" className="text-black hover:text-black hover:bg-black/10"*/}
-                {/*>*/}
-                {/*    View demo*/}
-                {/*</Button>*/}
+                <Button
+                    variant="ghost"
+                    className="text-black hover:text-black hover:bg-black/10"
+                    onClick={() => router.push('/login')}
+                >
+                    Login
+                </Button>
                 <Button
                     className="bg-black text-white hover:bg-gray-800"
                     onClick={() => router.push('/signup')}

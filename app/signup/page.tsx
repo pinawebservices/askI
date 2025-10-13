@@ -6,6 +6,44 @@ import { createClient } from '@/lib/supabase-client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+export function validatePassword(password: string): string[] {
+    const errors: string[] = [];
+
+    // Length check
+    if (password.length < 8) {
+        errors.push('Password must be at least 8 characters.');
+    }
+
+    if (password.length > 36) {
+        errors.push('Password must be less than 128 characters.');
+    }
+
+    // Character requirements
+    if (!/[A-Z]/.test(password)) {
+        errors.push('Password must contain at least one uppercase letter.');
+    }
+
+    if (!/[a-z]/.test(password)) {
+        errors.push('Password must contain at least one lowercase letter.');
+    }
+
+    if (!/[0-9]/.test(password)) {
+        errors.push('Password must contain at least one number.');
+    }
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        errors.push('Password must contain at least one special character.');
+    }
+
+    // Check against common passwords (optional but good)
+    const commonPasswords = ['Password123!','Password1!','P@ssword1!','P@ssword123!'];
+    if (commonPasswords.includes(password.toLowerCase())) {
+        errors.push('Password is too common. Please choose a more unique password.');
+    }
+
+    return errors;
+}
+
 export default function SignupPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,10 +55,29 @@ export default function SignupPage() {
     const router = useRouter();
     const supabase = createClient();
 
+    const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
+
+    const checkPasswordStrength = (pass: string) => {
+        const errors = validatePassword(pass);
+        if (errors.length === 0) return 'strong';
+        if (errors.length <= 2) return 'medium';
+        return 'weak';
+    };
+
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+        // Password validation
+        const passwordErrors = validatePassword(password);
+        if (passwordErrors.length > 0) {
+            setError(passwordErrors.join(' '));
+            setLoading(false);
+            return;
+        }
+
+
 
         try {
             // 1. Sign up the user
@@ -119,6 +176,7 @@ export default function SignupPage() {
                                 value={businessName}
                                 onChange={(e) => setBusinessName(e.target.value)}
                                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Acme Inc."
                             />
                         </div>
 
@@ -135,6 +193,7 @@ export default function SignupPage() {
                                     value={firstName}
                                     onChange={(e) => setFirstName(e.target.value)}
                                     className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                    placeholder="John"
                                 />
                             </div>
 
@@ -149,6 +208,7 @@ export default function SignupPage() {
                                     value={lastName}
                                     onChange={(e) => setLastName(e.target.value)}
                                     className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                    placeholder="Doe"
                                 />
                             </div>
                         </div>
@@ -166,6 +226,7 @@ export default function SignupPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="john@example.com"
                             />
                         </div>
 
@@ -180,12 +241,41 @@ export default function SignupPage() {
                                 autoComplete="new-password"
                                 required
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    setPasswordStrength(checkPasswordStrength(e.target.value));}}
                                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Minimum 6 characters"
                                 minLength={6}
+                                placeholder="Enter a strong password"
                             />
+                            {password && (
+                                <div className="mt-2">
+                                    <div className="flex gap-1">
+                                        <div className={`h-1 flex-1 rounded ${
+                                            passwordStrength === 'weak' ? 'bg-red-500' :
+                                                passwordStrength === 'medium' ? 'bg-yellow-500' :
+                                                    'bg-green-500'
+                                        }`} />
+                                        <div className={`h-1 flex-1 rounded ${
+                                            passwordStrength === 'medium' || passwordStrength === 'strong'
+                                                ? passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                                                : 'bg-gray-200'
+                                        }`} />
+                                        <div className={`h-1 flex-1 rounded ${
+                                            passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-200'
+                                        }`} />
+                                    </div>
+                                    <p className="text-xs mt-1 text-gray-600">
+                                        {passwordStrength === 'weak' && 'Weak password'}
+                                        {passwordStrength === 'medium' && 'Medium strength'}
+                                        {passwordStrength === 'strong' && 'Strong password'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                            Password must be at least 8 characters and include uppercase, lowercase, number, and special character
+                        </p>
                     </div>
 
                     <div>
