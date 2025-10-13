@@ -38,6 +38,7 @@ export default function HomePage() {
               <main className="pt-16">
                   <FinHeader/>
                   <FinHero />
+                  <Divider />
                   <LeadGenerationInsight />
                   <Divider />
                   <SavingsInsight />

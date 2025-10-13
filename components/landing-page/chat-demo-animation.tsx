@@ -23,9 +23,9 @@ interface ChatDemoAnimationProps {
 const defaultMessages: Message[] = [
     { role: "assistant", content: "Hi! I'm your AI assistant. How can I help you today?" },
     { role: "user", content: "I need help understanding your pricing plans" },
-    { role: "assistant", content: "I'd be happy to help you with our pricing! We have three main plans:\n\n• **Starter** - $29/month for small businesses\n• **Professional** - $99/month with advanced features\n• **Enterprise** - Custom pricing for large organizations\n\nWhich one would you like to know more about?" },
+    { role: "assistant", content: "I'd be happy to help you with our pricing! We have three main plans:\n\n• **Basic** - $99/month for small businesses\n• **Professional** - $149/month with advanced features\n• **Premium** - $199/month for established businesses\n\nWhich one would you like to know more about?" },
     { role: "user", content: "Tell me more about the Professional plan" },
-    { role: "assistant", content: "The Professional plan includes:\n\n• Up to 5,000 conversations/month\n• Advanced AI customization\n• Priority support\n• Custom branding\n• API access\n• Analytics dashboard\n\nWould you like to start a free trial?" }
+    { role: "assistant", content: "The Professional plan includes:\n\n• Everything in Basic Plan\n• Document Agent Training\n• Multi-Email Notifications\n• Email + SMS notifications\n• Lead Dashboard\n• Lead Reports\n\n**Note: This plan is coming soon!** Would you like to start with our Basic plan in the meantime?" }
 ];
 
 
@@ -146,7 +146,7 @@ const ChatDemoAnimation = ({
                 >
                     <div>
                         <h3 className="font-semibold text-base">{businessName}</h3>
-                        <p className="text-sm opacity-90">We&apos;re here to help!</p>
+                        <p className="text-sm opacity-90">Powered by AIWidgetWise.</p>
                     </div>
                     <button className="text-white/80 hover:text-white transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

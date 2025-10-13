@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {useParams, useRouter} from 'next/navigation';
+import { useSubscription } from '@/app/contexts/subscription-context';
 
 export default function SubscriptionPage() {
     const [loading, setLoading] = useState(true);
@@ -9,10 +10,37 @@ export default function SubscriptionPage() {
     const router = useRouter();
     const params = useParams();
     const clientId = params.clientId as string;
+    const { planType } = useSubscription();
 
     useEffect(() => {
-        const redirectToPortal = async () => {
+        const handleSubscription = async () => {
             try {
+                // If user has no plan, create Stripe checkout session for Basic plan trial
+                if (planType === 'none') {
+                    const response = await fetch('/api/stripe/checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            priceId: 'basic',
+                            planType: 'basic',
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.url) {
+                        // Redirect to Stripe Checkout
+                        window.location.href = data.url;
+                    } else {
+                        setError(data.error || 'Failed to start checkout');
+                        setLoading(false);
+                    }
+                    return;
+                }
+
+                // If user has a plan, redirect to Stripe Customer Portal
                 const response = await fetch('/api/stripe/portal', {
                     method: 'POST',
                 });
@@ -23,6 +51,7 @@ export default function SubscriptionPage() {
                     window.location.href = data.url;
                 } else {
                     setError('Unable to access subscription management');
+                    setLoading(false);
                 }
             } catch (err) {
                 setError('Failed to load subscription portal');
@@ -30,8 +59,8 @@ export default function SubscriptionPage() {
             }
         };
 
-        redirectToPortal();
-    }, []);
+        handleSubscription();
+    }, [planType, router, clientId]);
 
     if (error) {
         return (

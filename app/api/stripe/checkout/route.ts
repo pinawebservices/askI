@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
                     plan_type: planType,
                 },
                 subscription_data: {
-                    trial_period_days: 1,  // Optional trial
+                    trial_period_days: 14,  // Optional trial
                     metadata: {
                         organization_id: userOrgData.organization_id,
                         plan_type: planType,

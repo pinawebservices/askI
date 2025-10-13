@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button"
 import ChatDemoAnimation from "@/components/landing-page/chat-demo-animation";
+import {useRouter} from "next/navigation";
 
 export function FinHero() {
+
+    const router = useRouter();
+
     return (
         <section className="px-6 py-16 lg:px-8 lg:pt-20" >
             <div className="mx-auto max-w-7xl">
@@ -13,34 +17,22 @@ export function FinHero() {
                         </h1>
 
                         <p className="text-lg text-gray-600 max-w-lg leading-relaxed">
-                            Introducing Lex, your firm&apos;s new AI associate — captures that 35% of high-intent prospects who search after hours. Trained exclusively on the documents and knowledge you choose. Handles FAQs and qualifies leads 24/7, ensuring no opportunity escapes whether it&apos;s 2 PM or 2 AM.
+                            Introducing your website&apos;s new AI Agent — never miss another lead. Trained on your unique business knowledge to answer questions, qualify prospects, and engage visitors with expert-level responses that reflect your brand and expertise.
                         </p>
 
                         <div className="flex gap-4">
-                            <Button className="bg-black text-white hover:bg-gray-800 px-6 py-3">Start free trial</Button>
                             <Button
-                                variant="outline"
-                                className="border-black text-black hover:bg-black hover:text-white px-6 py-3 bg-transparent"
+                                className="bg-black text-white hover:bg-gray-800 px-6 py-3"
+                                onClick={() => router.push('/signup')}
                             >
-                                View demo
+                                Start free trial
                             </Button>
-                        </div>
-
-                        <div className="space-y-6 pt-8">
-                            <div className="text-xs font-semibold text-gray-500 tracking-wider uppercase">
-                                WORKS WITH EVERY HELPDESK
-                            </div>
-                            <div className="text-xs font-semibold text-gray-500 tracking-wider uppercase">
-                                #1 IN PERFORMANCE BENCHMARKS
-                            </div>
-                            <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-500 tracking-wider uppercase">
-                  FIN MILLION DOLLAR GUARANTEE
-                </span>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-500">
-                                    <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5L8 0Z" fill="currentColor" />
-                                </svg>
-                            </div>
+                            {/*<Button*/}
+                            {/*    variant="outline"*/}
+                            {/*    className="border-black text-black hover:bg-black hover:text-white px-6 py-3 bg-transparent"*/}
+                            {/*>*/}
+                            {/*    View demo*/}
+                            {/*</Button>*/}
                         </div>
                     </div>
 

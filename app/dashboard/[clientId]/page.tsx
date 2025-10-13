@@ -66,12 +66,8 @@ export default async function ClientDashboard({
         );
     }
 
-    // Otherwise show normal dashboard
-    return (
-        <div>
-            {/* Your existing dashboard content */}
-            <h1>Welcome to your dashboard</h1>
-            <p>Current plan: {subscription.plan_type}</p>
-        </div>
-    );
+    // Otherwise show normal dashboard with setup instructions
+    const { DashboardOverview } = await import('@/app/dashboard/components/dashboard-overview');
+
+    return <DashboardOverview clientId={clientId} />;
 }

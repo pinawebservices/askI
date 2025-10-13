@@ -253,21 +253,21 @@ export default function ClientLayoutClient({
                         </nav>
 
                         {/* Tools section */}
-                        {hasFeature('widget_access') && (
-                            <div className="mt-8">
-                                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                                    Tools
-                                </h2>
-                                <nav className="space-y-1">
-                                    <SidebarLink
-                                        href={`/dashboard/${clientId}/widget`}
-                                        icon="💬"
-                                        label="Widget Code"
-                                        highlight={true}
-                                    />
-                                </nav>
-                            </div>
-                        )}
+                        {/*{hasFeature('widget_access') && (*/}
+                        {/*    <div className="mt-8">*/}
+                        {/*        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">*/}
+                        {/*            Tools*/}
+                        {/*        </h2>*/}
+                        {/*        <nav className="space-y-1">*/}
+                        {/*            <SidebarLink*/}
+                        {/*                href={`/dashboard/${clientId}/widget`}*/}
+                        {/*                icon="💬"*/}
+                        {/*                label="Widget Code"*/}
+                        {/*                highlight={true}*/}
+                        {/*            />*/}
+                        {/*        </nav>*/}
+                        {/*    </div>*/}
+                        {/*)}*/}
                     </div>
                 </div>
 
