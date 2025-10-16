@@ -1,7 +1,7 @@
 // app/dashboard/[clientId]/settings/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSubscription } from '@/app/contexts/subscription-context';
 import { createClient } from '@/lib/supabase-client';
@@ -45,14 +45,7 @@ export default function SettingsPage({ params }: SettingsPageProps) {
         params.then(p => setClientId(p.clientId));
     }, [params]);
 
-    // Load settings when clientId is available
-    useEffect(() => {
-        if (clientId) {
-            loadSettings();
-        }
-    }, [clientId]);
-
-    const loadSettings = async () => {
+    const loadSettings = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('clients')
@@ -76,7 +69,14 @@ export default function SettingsPage({ params }: SettingsPageProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [clientId, supabase]);
+
+    // Load settings when clientId is available
+    useEffect(() => {
+        if (clientId) {
+            loadSettings();
+        }
+    }, [clientId, loadSettings]);
 
     const generateEmbedCode = (clientData: any) => {
         const baseUrl = window.location.origin;

@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 // GET all services for a client
 export async function GET(
     request: NextRequest,
-    { params }: { params: { clientId: string } }
+    { params }: { params: Promise<{ clientId: string }> }
 ) {
     try {
         const { clientId } = await params;
@@ -33,7 +33,7 @@ export async function GET(
 // POST new service
 export async function POST(
     request: NextRequest,
-    { params }: { params: { clientId: string } }
+    { params }: { params: Promise<{ clientId: string }> }
 ) {
     try {
         const { clientId } = await params;
@@ -78,7 +78,7 @@ export async function POST(
 // PUT update service
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { clientId: string } }
+    { params }: { params: Promise<{ clientId: string }> }
 ) {
     try {
         const { clientId } = await params;
@@ -121,10 +121,10 @@ export async function PUT(
 // DELETE service
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { clientId: string } }
+    { params }: { params: Promise<{ clientId: string }> }
 ) {
     try {
-        const { clientId } = params;
+        const { clientId } = await params;
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 

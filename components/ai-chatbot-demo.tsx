@@ -3,49 +3,41 @@
 
 import { useEffect } from 'react'
 
-// Declare the custom property on window object
-declare global {
-    interface Window {
-        aiChatbotConfig?: {
-            apiUrl: string;
-            businessType: string;
-            businessName: string;
-            customDetails?: string;
-            clientId: string;
-            theme: {
-                primaryColor: string;
-                textColor: string;
-            };
-        };
-    }
+interface ChatbotProviderProps {
+    clientId: string;
+    apiUrl?: string;
 }
 
-export default function ChatbotProvider() {
+export default function ChatbotProvider({
+    clientId,
+    apiUrl = process.env.NEXT_PUBLIC_APP_URL
+}: ChatbotProviderProps) {
     useEffect(() => {
-        // Configure chatbot
-        window.aiChatbotConfig = {
-            apiUrl: 'https://aski-chatbot.vercel.app',
-            businessType: "Law Firm",
-            businessName: "Morrison & Associates Law Firm",
-            clientId: "law-101",
-            theme: {
-                primaryColor: '#000000',
-                textColor: '#FFFFFF'
-            }
-        }
-
-        // Load script
+        // Load script with data-client attribute
         const script = document.createElement('script')
-        script.src = 'https://aski-chatbot.vercel.app/embed.js'
+        script.src = `${apiUrl}/embed.js`
+        script.setAttribute('data-client', clientId)
         script.async = true
         document.body.appendChild(script)
 
         return () => {
+            // Remove the script tag
             if (document.body.contains(script)) {
                 document.body.removeChild(script)
             }
+
+            // Remove the widget container that the script created
+            const widgetContainer = document.getElementById('ai-agent-widget')
+            if (widgetContainer) {
+                widgetContainer.remove()
+            }
+
+            // Reset the loaded flag so the widget can be loaded again if needed
+            if (typeof window !== 'undefined') {
+                (window as any).aiChatbotLoaded = false
+            }
         }
-    }, [])
+    }, [clientId, apiUrl])
 
     return null // This component doesn't render anything
 }

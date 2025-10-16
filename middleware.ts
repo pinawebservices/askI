@@ -4,6 +4,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { validateApiRequest } from '@/lib/middleware/cors-auth-simple';
 
+// Force Node.js runtime instead of Edge Runtime
+export const runtime = 'nodejs';
+
 export async function middleware(req: NextRequest) {
 
     if (req.nextUrl.pathname === '/api/chat') {

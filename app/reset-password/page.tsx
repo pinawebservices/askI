@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase-client';
 import { useRouter } from 'next/navigation';
-import {validatePassword} from "@/app/signup/page";
+import { validatePassword } from '@/lib/utils/password-validation';
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState('');
@@ -21,7 +21,7 @@ export default function ResetPasswordPage() {
                 setError('Invalid or expired reset link. Please request a new one.');
             }
         });
-    }, []);
+    }, [supabase.auth]);
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
