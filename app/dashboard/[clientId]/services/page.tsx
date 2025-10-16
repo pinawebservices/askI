@@ -1,7 +1,7 @@
 // app/dashboard/[clientId]/services/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 interface ClientService {
@@ -43,11 +43,7 @@ export default function ServicesPage() {
         is_active: true
     });
 
-    useEffect(() => {
-        loadServices();
-    }, [clientId]);
-
-    async function loadServices() {
+    const loadServices = useCallback(async () => {
         try {
             const response = await fetch(`/api/services/${clientId}`);
             if (!response.ok) throw new Error('Failed to fetch services');
@@ -60,7 +56,11 @@ export default function ServicesPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [clientId]);
+
+    useEffect(() => {
+        loadServices();
+    }, [loadServices]);
 
     async function saveService() {
         try {

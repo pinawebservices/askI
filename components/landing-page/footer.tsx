@@ -1,4 +1,5 @@
 import { Zap, Twitter, Linkedin, Github } from "lucide-react"
+import Link from "next/link"
 
 export function FinFooter() {
     return (
@@ -29,24 +30,24 @@ export function FinFooter() {
                         <h3 className="font-semibold">Platform</h3>
                         <ul className="mt-4 space-y-2 text-sm text-background/70">
                             <li>
-                                <a href="/login" className="hover:text-background transition-colors">
+                                <Link href="/login" className="hover:text-background transition-colors">
                                     Login
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/signup" className="hover:text-background transition-colors">
+                                <Link href="/signup" className="hover:text-background transition-colors">
                                     Sign Up
-                                </a>
+                                </Link>
                             </li>
                             {/*<li>*/}
-                            {/*    <a href="/#features" className="hover:text-background transition-colors">*/}
+                            {/*    <Link href="/#features" className="hover:text-background transition-colors">*/}
                             {/*        Features*/}
-                            {/*    </a>*/}
+                            {/*    </Link>*/}
                             {/*</li>*/}
                             <li>
-                                <a href="/#pricing" className="hover:text-background transition-colors">
+                                <Link href="/#pricing" className="hover:text-background transition-colors">
                                     Pricing
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -55,14 +56,14 @@ export function FinFooter() {
                         <h3 className="font-semibold">Legal & Support</h3>
                         <ul className="mt-4 space-y-2 text-sm text-background/70">
                             <li>
-                                <a href="/privacy" className="hover:text-background transition-colors">
+                                <Link href="/privacy" className="hover:text-background transition-colors">
                                     Privacy Policy
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/terms" className="hover:text-background transition-colors">
+                                <Link href="/terms" className="hover:text-background transition-colors">
                                     Terms of Service
-                                </a>
+                                </Link>
                             </li>
                             <li>
                                 <a href="mailto:support@aiwidgetwise.com" className="hover:text-background transition-colors">

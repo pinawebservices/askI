@@ -1,5 +1,5 @@
 // / app/api/test-supabase/route.js
-import { supabaseAdmin } from '@/lib/supabase-admin.js';
+import { supabaseAdmin } from '@/lib/supabase-admin.ts';
 
 export async function GET() {
     try {

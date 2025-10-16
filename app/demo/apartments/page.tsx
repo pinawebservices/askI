@@ -209,10 +209,10 @@ export default function ApartmentsPage(): React.JSX.Element {
         </div>
 
         {/* /!*AI Chatbot Widget -- DEV *!/*/}
-        <script src="http://localhost:3000/embed.js" data-client="new-comp-ff02de06"></script>
+        {/*<script src="http://localhost:3000/embed.js" data-client="new-comp-ff02de06"></script>*/}
 
         {/*/!* AI Chatbot Widget -- PROD *!/*/}
-        {/*<ChatbotProvider />*/}
+        <ChatbotProvider clientId="new-comp-ff02de06"/>
       </div>
   );
 }
