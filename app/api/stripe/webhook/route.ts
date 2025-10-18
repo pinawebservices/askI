@@ -95,6 +95,8 @@ export async function POST(req: NextRequest) {
                                 action: 'created',
                                 plan_type: insertData.plan_type,
                                 status: insertData.status,
+                                started_at: new Date().toISOString(),
+                                ended_at: null,
                                 metadata: {
                                     customer_id: session.customer?.toString(),
                                     trial_end: insertData.trial_end,
@@ -161,7 +163,8 @@ export async function POST(req: NextRequest) {
                 const updateData: any = {
                     status: subscription.status,
                     current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
-                    stripe_price_id: subscription.items.data[0].price.id,  // ADD THIS
+                    stripe_price_id: subscription.items.data[0].price.id,
+                    updated_at: new Date().toISOString(),
                 };
 
                 // If the price changed, we need to determine the new plan_type
@@ -196,6 +199,16 @@ export async function POST(req: NextRequest) {
 
                 // Log to subscription_history
                 if (statusChanged || planChanged) {
+                    // First, close the previous status period (if exists)
+                    if (statusChanged) {
+                        await supabaseAdmin
+                            .from('subscription_history')
+                            .update({ ended_at: new Date().toISOString() })
+                            .eq('stripe_subscription_id', subscription.id)
+                            .is('ended_at', null);
+                    }
+
+                    // Then, create a new history entry for the new status
                     await supabaseAdmin
                         .from('subscription_history')
                         .insert({
@@ -205,7 +218,10 @@ export async function POST(req: NextRequest) {
                             action: previousAttributes?.items?.data?.[0]?.price?.id ? 'plan_changed' : 'status_changed',
                             plan_type: subData?.plan_type,
                             status: subscription.status,
+                            started_at: new Date().toISOString(),
+                            ended_at: null,
                             metadata: {
+                                previous_status: previousAttributes?.status,
                                 previous_attributes: previousAttributes,
                                 changed_fields: Object.keys(previousAttributes || {})
                             }
@@ -261,22 +277,35 @@ export async function POST(req: NextRequest) {
 
                     const { error: supDeleteErr } = await supabaseAdmin
                         .from('stripe_subscriptions')
-                        .update({status: 'cancelled'})
+                        .update({
+                            status: 'cancelled',
+                            updated_at: new Date().toISOString()
+                        })
                         .eq('stripe_subscription_id', subscription.id);
 
                     if (supDeleteErr) {
                         console.error('Error cancelling subscription stripe_subscriptions:', supDeleteErr);
                     }
 
+                    // Close the previous active period
+                    await supabaseAdmin
+                        .from('subscription_history')
+                        .update({ ended_at: new Date().toISOString() })
+                        .eq('stripe_subscription_id', subscription.id)
+                        .is('ended_at', null);
+
+                    // Create a cancellation history entry
                     const { error: subHisErr } = await supabaseAdmin
                         .from('subscription_history')
                         .insert({
                             organization_id: subData.organization_id,
                             stripe_subscription_id: subscription.id,
                             stripe_price_id: subscription.items.data[0]?.price.id || null,
-                            action: 'subscription cancelled',  // was event_type
+                            action: 'subscription cancelled',
                             plan_type: subData.plan_type,
                             status: 'cancelled',
+                            started_at: new Date().toISOString(),
+                            ended_at: new Date().toISOString(),
                             metadata: JSON.parse(JSON.stringify({
                                 cancellation_details: subscription.cancellation_details,
                                 cancelled_at: subscription.canceled_at

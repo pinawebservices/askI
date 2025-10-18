@@ -19,7 +19,7 @@ export function FinFooter() {
                                     <path d="M113.66,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
                                 </svg>
                             </div>
-                            <span className="text-white text-xl font-semibold">AIWidgetWise</span>
+                            <span className="text-white text-xl font-semibold">WidgetWise</span>
                         </div>
                         <p className="mt-4 text-sm text-background/70">
                             AI-powered chatbot agent that captures leads, answers questions, and supports your customers 24/7—trained on your business knowledge.
@@ -75,7 +75,7 @@ export function FinFooter() {
                 </div>
 
                 <div className="mt-12 border-t border-background/20 pt-8">
-                    <p className="text-center text-sm text-background/70">© 2025 AIWidgetWise, LLC. All rights reserved.</p>
+                    <p className="text-center text-sm text-background/70">© 2025 WidgetWise, LLC. All rights reserved.</p>
                 </div>
             </div>
         </footer>

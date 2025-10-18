@@ -92,6 +92,24 @@ export function DashboardOverview({ clientId }: DashboardOverviewProps) {
                     </p>
                 </div>
             </div>
+
+            {/* Support Contact Message */}
+            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <p className="text-sm text-blue-900">
+                            <strong>Need Help?</strong> To get in contact with our support team, please send an email to{' '}
+                            <a href="mailto:support@aiwidgetwise.com" className="underline hover:text-blue-700">
+                                support@aiwidgetwise.com
+                            </a>
+                            {' '}and someone will contact you back as soon as possible.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
