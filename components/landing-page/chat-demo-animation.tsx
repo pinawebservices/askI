@@ -146,7 +146,7 @@ const ChatDemoAnimation = ({
                 >
                     <div>
                         <h3 className="font-semibold text-base">{businessName}</h3>
-                        <p className="text-sm opacity-90">Powered by AIWidgetWise.</p>
+                        <p className="text-sm opacity-90">Powered by WidgetWise.</p>
                     </div>
                     <button className="text-white/80 hover:text-white transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

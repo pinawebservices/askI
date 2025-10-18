@@ -47,6 +47,9 @@ export default function AgentConfigPage() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
+    // Allowed domains state
+    const [allowedDomains, setAllowedDomains] = useState<string[]>(['']);
+
     useEffect(() => {
         // Prevent multiple fetches
         if (hasFetchedRef.current || !clientId) return;
@@ -111,6 +114,20 @@ export default function AgentConfigPage() {
             } else {
                 console.log('No existing instructions, using defaults for:', clientId);
             }
+
+            // Load allowed domains from clients table
+            const { data: clientData, error: clientError } = await supabase
+                .from('clients')
+                .select('allowed_domains')
+                .eq('client_id', clientId)
+                .single();
+
+            if (clientError) {
+                console.error('Error fetching allowed domains:', clientError);
+            } else if (clientData) {
+                const domains = clientData.allowed_domains || [];
+                setAllowedDomains(domains.length > 0 ? domains : ['']);
+            }
         } catch (err) {
             console.error('Unexpected error:', err);
             setError(err instanceof Error ? err.message : 'Failed to load instructions');
@@ -151,6 +168,18 @@ export default function AgentConfigPage() {
             if (saveError) {
                 console.error('Save error:', saveError);
                 throw saveError;
+            }
+
+            // Save allowed domains to clients table (filter out empty strings)
+            const validDomains = allowedDomains.filter(d => d.trim() !== '');
+            const { error: domainsError } = await supabase
+                .from('clients')
+                .update({ allowed_domains: validDomains })
+                .eq('client_id', clientId);
+
+            if (domainsError) {
+                console.error('Error saving domains:', domainsError);
+                // Don't throw - this is non-critical
             }
 
             // Check if Pinecone needs to be configured
@@ -231,6 +260,24 @@ export default function AgentConfigPage() {
             setWarningMessage('Failed to activate AI agent. Please try again.');
         }
     }
+
+    // Domain management functions
+    const addDomainField = () => {
+        if (allowedDomains.length < 3) {
+            setAllowedDomains([...allowedDomains, '']);
+        }
+    };
+
+    const removeDomainField = (index: number) => {
+        const newDomains = allowedDomains.filter((_, i) => i !== index);
+        setAllowedDomains(newDomains.length > 0 ? newDomains : ['']);
+    };
+
+    const updateDomain = (index: number, value: string) => {
+        const newDomains = [...allowedDomains];
+        newDomains[index] = value;
+        setAllowedDomains(newDomains);
+    };
 
     // Show loading state with the spinner
     if (loading) {
@@ -674,6 +721,56 @@ Answer: We accept cash, check, and all major credit cards. Payment plans are ava
                         </div>
                     </div>
 
+                    {/* Allowed Domains */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h2 className="text-lg font-semibold mb-4">Allowed Domains</h2>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Specify which websites can use your AI widget. Only requests from these domains will be accepted.
+                        </p>
+
+                        <div className="space-y-3">
+                            {allowedDomains.map((domain, index) => (
+                                <div key={index} className="flex gap-2 items-center">
+                                    <input
+                                        type="text"
+                                        value={domain}
+                                        onChange={(e) => updateDomain(index, e.target.value)}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="https://example.com"
+                                    />
+                                    {allowedDomains.length > 1 && (
+                                        <button
+                                            onClick={() => removeDomainField(index)}
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                            title="Remove domain"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                    {index === allowedDomains.length - 1 && allowedDomains.length < 3 && (
+                                        <button
+                                            onClick={addDomainField}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                            title="Add another domain"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-xs text-yellow-800">
+                                <strong>Note:</strong> Enter full URLs including https:// (e.g., https://www.example.com). You can add up to 3 domains.
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Embed Code - Only shown after first save */}
                     {instructions.id && (
                         <div className="bg-white rounded-lg shadow p-6">
@@ -735,6 +832,24 @@ Answer: We accept cash, check, and all major credit cards. Payment plans are ava
                     {/*        rows={3}*/}
                     {/*    />*/}
                     {/*</div>*/}
+
+                    {/* Support Contact Message */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                            <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <p className="text-sm text-blue-900">
+                                    <strong>Need Help?</strong> To get in contact with our support team, please send an email to{' '}
+                                    <a href="mailto:support@aiwidgetwise.com" className="underline hover:text-blue-700">
+                                        support@aiwidgetwise.com
+                                    </a>
+                                    {' '}and someone will contact you back as soon as possible.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-4 pt-6 border-t">

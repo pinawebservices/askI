@@ -58,24 +58,6 @@ export async function GET(
     console.log('4. Instructions data');
     // console.log('4. Instructions data:', instructions);
 
-    // Auto-add domain if it's new (optional)
-    if (domain && !client.allowed_domains?.includes(domain)) {
-        const domainCount = client.allowed_domains?.length || 0;
-
-        if (domainCount < 5) {
-            const updatedDomains = [...(client.allowed_domains || []), domain];
-
-            await supabaseAdmin
-                .from('clients')
-                .update({allowed_domains: updatedDomains})
-                .eq('client_id', clientId);
-
-            console.log(`Auto-added domain ${domain} for client ${clientId}`);
-        } else {
-            console.warn(`⚠️ Client ${clientId} hit domain limit.`);
-        }
-    }
-
     const widgetSettings = (instructions?.widget_settings as any) || {};
     const businessName = instructions?.business_name || 'Our Business';
 

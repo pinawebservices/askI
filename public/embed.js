@@ -241,7 +241,7 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
       ">
         <div>
           <h3 style="margin: 0; font-size: 16px; font-weight: 600;">${config.businessName || 'AI Assistant'}</h3>
-          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Powered by AIWidgetWise.</p>
+          <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">Powered by WidgetWise.</p>
         </div>
         <button id="close-chat" style="
           background: none;

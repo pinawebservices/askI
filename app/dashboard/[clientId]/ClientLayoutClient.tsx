@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { useSubscription } from '@/app/contexts/subscription-context';
 
 type PlanType = 'none' | 'basic' | 'pro' | 'premium';
@@ -23,20 +24,23 @@ interface SidebarLinkProps {
     highlight?: boolean;
     disabled?: boolean;
     badge?: string | null;
+    isCollapsed?: boolean;
 }
 
-function SidebarLink({ href, icon, label, highlight = false , disabled , badge = null }: SidebarLinkProps) {
+function SidebarLink({ href, icon, label, highlight = false , disabled , badge = null, isCollapsed = false }: SidebarLinkProps) {
     const pathname = usePathname();
     const isActive = pathname === href;
 
     if (disabled) {
         return (
-            <div className="flex items-center justify-between px-3 py-2 text-gray-400 cursor-not-allowed opacity-50">
-                <div className="flex items-center gap-3">
-                    <span>{icon}</span>
-                    <span className="text-sm">{label}</span>
+            <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 text-gray-400 cursor-not-allowed opacity-50`}
+                 title={isCollapsed ? label : undefined}
+            >
+                <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
+                    <span className="text-xl">{icon}</span>
+                    {!isCollapsed && <span className="text-sm">{label}</span>}
                 </div>
-                {badge && (
+                {!isCollapsed && badge && (
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
             {badge}
           </span>
@@ -48,19 +52,20 @@ function SidebarLink({ href, icon, label, highlight = false , disabled , badge =
     return (
         <Link
             href={href}
-            className={`flex items-center justify-between px-3 py-2 rounded-md transition-colors ${
+            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-md transition-colors ${
                 isActive
                     ? 'bg-blue-50 text-blue-700'
                     : highlight
                         ? 'text-blue-600 hover:bg-blue-50'
                         : 'text-gray-700 hover:bg-gray-50'
             }`}
+            title={isCollapsed ? label : undefined}
         >
-            <div className="flex items-center gap-3">
-                <span>{icon}</span>
-                <span className="text-sm font-medium">{label}</span>
+            <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
+                <span className="text-xl">{icon}</span>
+                {!isCollapsed && <span className="text-sm font-medium">{label}</span>}
             </div>
-            {badge && (
+            {!isCollapsed && badge && (
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
           {badge}
         </span>
@@ -76,6 +81,7 @@ export default function ClientLayoutClient({
                                            }: ClientLayoutClientProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     // Get subscription context
     const {
@@ -120,11 +126,18 @@ export default function ClientLayoutClient({
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-white border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <h1 className="text-xl font-semibold">
-                            {client.business_name}
-                        </h1>
+                        <div className="flex items-center gap-2">
+                            <div className="text-black text-2xl font-bold">
+                                <svg className="h-7 w-7" viewBox="0 0 179.25 108.52" fill="currentColor">
+                                    <path fillRule="evenodd" d="M116.44,108.52c29.62,0,62.8-22.28,62.8-54.26S146.06,0,116.44,0h-1.56c22.22,0,40.4,18.18,40.4,40.4s-18.18,40.4-40.4,40.4h-50.81c-22.22,0-40.4-18.18-40.4-40.4S41.85,0,64.07,0h-1.26C33.18,0,0,22.28,0,54.26s33.18,54.26,62.8,54.26h53.64Z"/>
+                                    <path d="M65.58,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
+                                    <path d="M113.66,24.61c7.71,0,13.95,6.25,13.95,13.95s-6.25,13.95-13.95,13.95-13.95-6.25-13.95-13.95,6.25-13.95,13.95-13.95h0Z"/>
+                                </svg>
+                            </div>
+                            <span className="text-black text-xl font-semibold">WidgetWise</span>
+                        </div>
 
                         <div className="flex items-center gap-4">
                             {/* Plan and Status Display */}
@@ -161,16 +174,34 @@ export default function ClientLayoutClient({
             {/* Main Layout with Sidebar */}
             <div className="flex h-[calc(100vh-4rem)]">
                 {/* Sidebar */}
-                <div className="w-64 bg-white border-r">
+                <div className={`${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-white border-r transition-all duration-300 ease-in-out`}>
                     <div className="p-4">
-                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                            Management
-                        </h2>
+                        <div className="flex items-center justify-between mb-4">
+                            {!isSidebarCollapsed && (
+                                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                    Management
+                                </h2>
+                            )}
+                            <button
+                                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                                className="p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                                title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                            >
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {isSidebarCollapsed ? (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    ) : (
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
                         <nav className="space-y-1">
                             <SidebarLink
                                 href={`/dashboard/${clientId}`}
                                 icon="🏠"
                                 label="Overview"
+                                isCollapsed={isSidebarCollapsed}
                             />
 
                             <SidebarLink
@@ -181,6 +212,7 @@ export default function ClientLayoutClient({
                                 label="Agent Config"
                                 disabled={!hasFeature('agent_config')}
                                 badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
+                                isCollapsed={isSidebarCollapsed}
                             />
 
                             <SidebarLink
@@ -191,6 +223,7 @@ export default function ClientLayoutClient({
                                 label="Services & Pricing"
                                 disabled={!hasFeature('agent_config')}
                                 badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
+                                isCollapsed={isSidebarCollapsed}
                             />
 
                             {/*/!* Show features based on plan *!/*/}
@@ -242,6 +275,7 @@ export default function ClientLayoutClient({
                                 href={`/dashboard/${clientId}/settings`}
                                 icon="⚙️"
                                 label="Settings"
+                                isCollapsed={isSidebarCollapsed}
                             />
 
                             <SidebarLink
@@ -249,6 +283,7 @@ export default function ClientLayoutClient({
                                 icon="💳"
                                 label={planType === 'none' ? 'Start Trial' : 'Manage Subscription'}
                                 highlight={planType === 'none'}
+                                isCollapsed={isSidebarCollapsed}
                             />
                         </nav>
 
