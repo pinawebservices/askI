@@ -59,9 +59,19 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
       // DEBUG
       //console.log('🔍 [parseMarkdown] Input:', JSON.stringify(content));
 
-      // First, escape HTML to prevent injection
-      // Then convert basic markdown
+      // SECURITY: First, escape ALL HTML to prevent XSS injection
+      const escapeHTML = (str) => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      };
+
+      // Escape the entire content first
+      content = escapeHTML(content);
+
+      // Now safely convert markdown (HTML is already escaped)
       content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
       // Convert ALL types of line breaks to <br> tags (handle all line break types)
       content = content.replace(/\r\n/g, '<br>');  // Windows line breaks
       content = content.replace(/\n/g, '<br>');     // Unix line breaks
