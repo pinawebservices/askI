@@ -13,6 +13,7 @@ export default function SignupPage() {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [businessName, setBusinessName] = useState('');
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
@@ -31,6 +32,13 @@ export default function SignupPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+        // Terms validation
+        if (!acceptedTerms) {
+            setError('You must accept the Terms and Conditions to create an account.');
+            setLoading(false);
+            return;
+        }
 
         // Password validation
         const passwordErrors = validatePassword(password);
@@ -117,6 +125,11 @@ export default function SignupPage() {
                     <p className="mt-2 text-center text-sm text-gray-600">
                         Start your 14-day free trial
                     </p>
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-xs text-center text-blue-800">
+                            <strong>No credit card required</strong> to create your account. You&apos;ll add payment details when you start your free trial.
+                        </p>
+                    </div>
                 </div>
 
                 <form className="mt-8 space-y-6" onSubmit={handleSignup}>
@@ -241,10 +254,35 @@ export default function SignupPage() {
                         </p>
                     </div>
 
+                    {/* Terms and Conditions Checkbox */}
+                    <div className="flex items-start">
+                        <div className="flex items-center h-5">
+                            <input
+                                id="accept-terms"
+                                type="checkbox"
+                                checked={acceptedTerms}
+                                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                            />
+                        </div>
+                        <div className="ml-3 text-sm">
+                            <label htmlFor="accept-terms" className="font-medium text-gray-700 cursor-pointer">
+                                I agree to the{' '}
+                                <Link href="/terms" target="_blank" className="text-blue-600 hover:text-blue-500 underline">
+                                    Terms and Conditions
+                                </Link>
+                                {' '}and{' '}
+                                <Link href="/privacy" target="_blank" className="text-blue-600 hover:text-blue-500 underline">
+                                    Privacy Policy
+                                </Link>
+                            </label>
+                        </div>
+                    </div>
+
                     <div>
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !acceptedTerms}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? 'Creating account...' : 'Sign up'}

@@ -130,6 +130,23 @@ export async function POST(req: NextRequest) {
                 });
         }
 
+        // Calculate trial end date
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 14);
+        const formattedTrialEndDate = trialEndDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        // Get plan pricing for display
+        const planPrices = {
+            basic: '$99',
+            pro: '$149',
+            premium: '$199'
+        };
+        const planPrice = planPrices[planType as keyof typeof planPrices] || '$99';
+
         // Create checkout session
         try {
             const session = await stripe.checkout.sessions.create({
@@ -145,8 +162,20 @@ export async function POST(req: NextRequest) {
                     organization_id: userOrgData.organization_id,
                     plan_type: planType,
                 },
+                consent_collection: {
+                    terms_of_service: 'required',
+                },
+                custom_text: {
+                    terms_of_service_acceptance: {
+                        message: `I agree to the [Terms and Conditions](${process.env.NEXT_PUBLIC_APP_URL}/terms) and authorize WidgetWise to charge ${planPrice}/month after my free trial ends on ${formattedTrialEndDate}.`
+                    },
+                    submit: {
+                        message: `Start your 14-day free trial. You will be charged ${planPrice}/month starting ${formattedTrialEndDate} unless you cancel before then.`
+                    }
+                },
                 subscription_data: {
                     trial_period_days: 14,  // Optional trial
+                    description: `${planType.charAt(0).toUpperCase() + planType.slice(1)} Plan - ${planPrice}/month after trial`,
                     metadata: {
                         organization_id: userOrgData.organization_id,
                         plan_type: planType,
