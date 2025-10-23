@@ -62,12 +62,27 @@ export function FinFooter() {
                             </li>
                             <li>
                                 <Link href="/terms" className="hover:text-background transition-colors">
-                                    Terms of Service
+                                    Terms and Conditions
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/cookies" className="hover:text-background transition-colors">
+                                    Cookie Policy
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/acceptable-use" className="hover:text-background transition-colors">
+                                    Acceptable Use Policy
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/contact" className="hover:text-background transition-colors">
+                                    Contact Us
                                 </Link>
                             </li>
                             <li>
                                 <a href="mailto:support@aiwidgetwise.com" className="hover:text-background transition-colors">
-                                    Contact Support
+                                    Email Support
                                 </a>
                             </li>
                         </ul>

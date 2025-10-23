@@ -348,14 +348,74 @@ export async function POST(req: NextRequest) {
                 break;
             }
 
+            case 'invoice.payment_succeeded': {
+                const invoice = event.data.object as Stripe.Invoice;
+
+                // Only send for subscription invoices (not one-time payments)
+                if (invoice.parent?.subscription_details?.subscription && invoice.billing_reason !== 'manual') {
+                    console.log('Payment succeeded for invoice:', invoice.id);
+
+                    // Get customer email
+                    const customer = await stripe.customers.retrieve(invoice.customer as string);
+
+                    if ('email' in customer && customer.email) {
+                        // Get subscription details for plan info
+                        const subscription = await stripe.subscriptions.retrieve(invoice.parent.subscription_details!.subscription as string);
+                        const planType = subscription.metadata?.plan_type || 'basic';
+
+                        // Get plan pricing
+                        const planPrices: Record<string, string> = {
+                            basic: '$99',
+                            pro: '$149',
+                            premium: '$199'
+                        };
+                        const planPrice = planPrices[planType] || '$99';
+
+                        // Send payment confirmation email
+                        const { sendPaymentConfirmationEmail } = await import('@/lib/services/notifications/emailNotifications.js');
+                        await sendPaymentConfirmationEmail(customer.email, {
+                            amount: invoice.amount_paid,
+                            planType,
+                            planPrice,
+                            periodStart: invoice.period_start,
+                            periodEnd: invoice.period_end,
+                            invoiceUrl: invoice.hosted_invoice_url || invoice.invoice_pdf || ''
+                        });
+
+                        console.log('✅ Payment confirmation email sent for invoice:', invoice.id);
+                    }
+                }
+                break;
+            }
+
             case 'customer.subscription.trial_will_end': {
                 const subscription = event.data.object as Stripe.Subscription;
 
                 // Send reminder email 3 days before trial ends
                 console.log('Trial ending soon for subscription:', subscription.id);
 
-                // TODO: Send email notification to customer
-                // You could use Resend or your email service here
+                // Get customer email and plan details
+                const customer = await stripe.customers.retrieve(subscription.customer as string);
+                const planType = subscription.metadata?.plan_type || 'basic';
+
+                // Get plan pricing
+                const planPrices: Record<string, string> = {
+                    basic: '$99',
+                    pro: '$149',
+                    premium: '$199'
+                };
+                const planPrice = planPrices[planType] || '$99';
+
+                // Send email notification
+                if ('email' in customer && customer.email) {
+                    const { sendTrialEndingReminderEmail } = await import('@/lib/services/notifications/emailNotifications.js');
+                    await sendTrialEndingReminderEmail(
+                        customer.email,
+                        subscription.trial_end!,
+                        planType,
+                        planPrice
+                    );
+                }
 
                 await supabaseAdmin
                     .from('subscription_history')

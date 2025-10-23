@@ -21,7 +21,7 @@ export default function ResetPasswordPage() {
                 setError('Invalid or expired reset link. Please request a new one.');
             }
         });
-    }, [supabase.auth]);
+    }, [supabase]);
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
