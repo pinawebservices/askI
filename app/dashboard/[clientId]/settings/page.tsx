@@ -231,6 +231,19 @@ export default function SettingsPage({ params }: SettingsPageProps) {
                             <p className="text-xs text-gray-500 mt-1">
                                 Email address where new lead notifications will be sent (leave empty to use account email)
                             </p>
+
+                            {/* Email deliverability tip */}
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <div className="flex items-start gap-2">
+                                    <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div className="text-xs text-blue-800">
+                                        <p className="font-medium mb-1">To ensure reliable delivery:</p>
+                                        <p>Add <span className="font-mono bg-blue-100 px-1 rounded">notifications@notifications.aiwidgetwise.com</span> to your email contacts or safe sender list to prevent notifications from going to spam.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Show current notification status */}
