@@ -52,7 +52,7 @@ export default function HomePage() {
               </main>
 
               {/*/!* AI Chatbot Widget *!/*/}
-              <ChatbotProvider clientId="new-comp-ff02de06"/>
+              <ChatbotProvider clientId="widgetwise-llc-87d025d9"/>
           </div>
       </div>
   )
