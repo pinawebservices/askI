@@ -1,23 +1,29 @@
 // public/embed.js - Enhanced with structured response formatting
-// Capture at the top level - THIS WORKS
-const CAPTURED_SCRIPT = document.currentScript;
-const CAPTURED_CLIENT_ID = CAPTURED_SCRIPT?.getAttribute('data-client');
-const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
+// Use IIFE to avoid polluting global scope and prevent re-declaration errors
+(function() {
+  // Capture at the top level - avoid const/let in global scope
+  const CAPTURED_SCRIPT = document.currentScript;
+  const CAPTURED_CLIENT_ID = CAPTURED_SCRIPT?.getAttribute('data-client');
+  const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
 
+  // Check if widget already loaded (prevents multiple initializations)
+  if (window.aiChatbotLoaded) {
+    console.log('WidgetWise chat already loaded, skipping initialization');
+    return;
+  }
+  window.aiChatbotLoaded = true;
 
-(function (clientId, scriptSrc) {
-
-  if (!clientId) {
+  if (!CAPTURED_CLIENT_ID) {
     console.error('❌ No client ID found. Make sure to include data-client="your-client-id"');
     return;
   }
 
   // DEBUG
-  // console.log("📡 Loading configuration for:", clientId);
+  // console.log("📡 Loading configuration for:", CAPTURED_CLIENT_ID);
 
-  // Check if widget already loaded
-  if (window.aiChatbotLoaded) return;
-  window.aiChatbotLoaded = true;
+  initializeWidget(CAPTURED_CLIENT_ID, CAPTURED_SCRIPT_SRC);
+
+  function initializeWidget(clientId, scriptSrc) {
 
   // Derive API URL from script source
   const apiBaseUrl = scriptSrc ?
@@ -718,4 +724,5 @@ const CAPTURED_SCRIPT_SRC = CAPTURED_SCRIPT?.src;
 //     console.log('💡 Dev mode: Use window.testChat("your question") to test the API');
 //   }
 
-})(CAPTURED_CLIENT_ID, CAPTURED_SCRIPT_SRC);
+  }
+})();
