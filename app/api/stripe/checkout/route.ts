@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server-client';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const PRICE_IDS = {
     basic: process.env.STRIPE_PRICE_BASIC!,
@@ -120,14 +121,24 @@ export async function POST(req: NextRequest) {
                 }, { status: 400 });
             }
 
-            // Save to our stripe_customers table
-            await supabase
+            // Save to our stripe_customers table (using admin to bypass RLS)
+            const { error: customerInsertError } = await supabaseAdmin
                 .from('stripe_customers')
                 .insert({
                     organization_id: userOrgData.organization_id,
                     stripe_customer_id: stripeCustomerId,
                     email: user.email
                 });
+
+            if (customerInsertError) {
+                console.error('Failed to save stripe customer to database:', customerInsertError);
+                return NextResponse.json({
+                    error: 'Failed to save customer data',
+                    details: customerInsertError.message
+                }, { status: 500 });
+            }
+
+            console.log('Successfully created stripe_customer record');
         }
 
         // Calculate trial end date
