@@ -16,6 +16,7 @@ export default function SignupPage() {
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [signupSuccess, setSignupSuccess] = useState(false);
     const router = useRouter();
     const supabase = createClient();
 
@@ -89,8 +90,7 @@ export default function SignupPage() {
                 }
             }
 
-            alert('Check your email to confirm your account!');
-            router.push('/login');
+            setSignupSuccess(true);
 
         } catch (error: any) {
             setError(error.message);
@@ -118,21 +118,23 @@ export default function SignupPage() {
 
             <div className="relative z-10 max-w-md w-full">
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-8 border border-gray-100">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create your account
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Start your 14-day free trial
-                    </p>
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-xs text-center text-blue-800">
-                            <strong>No credit card required</strong> to create your account. You&apos;ll add payment details when you start your free trial.
-                        </p>
-                    </div>
-                </div>
+                {!signupSuccess ? (
+                    <>
+                        <div>
+                            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                                Create your account
+                            </h2>
+                            <p className="mt-2 text-center text-sm text-gray-600">
+                                Start your 14-day free trial
+                            </p>
+                            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-xs text-center text-blue-800">
+                                    <strong>No credit card required</strong> to create your account. You&apos;ll add payment details when you start your free trial.
+                                </p>
+                            </div>
+                        </div>
 
-                <form className="mt-8 space-y-6" onSubmit={handleSignup}>
+                        <form className="mt-8 space-y-6" onSubmit={handleSignup}>
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
                             {error}
@@ -298,6 +300,36 @@ export default function SignupPage() {
             </span>
                     </div>
                 </form>
+                    </>
+                ) : (
+                    <div className="text-center space-y-6">
+                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+                            <svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-900">Check your email</h3>
+                            <p className="mt-3 text-gray-600">
+                                We&apos;ve sent a confirmation email to <strong>{email}</strong>
+                            </p>
+                            <p className="mt-2 text-sm text-gray-500">
+                                Click the link in the email to verify your account and complete your registration.
+                            </p>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p className="text-sm text-blue-800">
+                                <strong>Didn&apos;t receive the email?</strong> Check your spam folder or wait a few minutes for it to arrive.
+                            </p>
+                        </div>
+                        <Link
+                            href="/login"
+                            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+                        >
+                            Go to Login
+                        </Link>
+                    </div>
+                )}
             </div>
             </div>
         </div>

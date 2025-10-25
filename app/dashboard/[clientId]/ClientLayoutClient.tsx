@@ -94,13 +94,19 @@ export default function ClientLayoutClient({
 
     // Plan display helper
     const getPlanDisplay = () => {
-        const planNames = {
-            none: 'No Plan',
-            basic: 'Basic',
-            pro: 'Professional',
-            premium: 'Premium'
+        const planConfig = {
+            none: { label: 'No Plan', className: 'bg-gray-100 text-gray-700 border border-gray-300' },
+            basic: { label: 'Basic Plan', className: 'bg-blue-100 text-blue-700 border border-blue-200' },
+            pro: { label: 'Professional', className: 'bg-purple-100 text-purple-700 border border-purple-200' },
+            premium: { label: 'Premium Plan', className: 'bg-amber-100 text-amber-700 border border-amber-200' }
         };
-        return planNames[planType || 'none'] || 'No Plan';
+
+        const config = planConfig[planType || 'none'];
+        return (
+            <span className={`px-3 py-1.5 text-xs font-semibold rounded-md ${config.className}`}>
+                {config.label}
+            </span>
+        );
     };
 
     // Status badge helper
@@ -108,17 +114,17 @@ export default function ClientLayoutClient({
         if (planType === 'none' || !status) return null;
 
         const statusConfig = {
-            trialing: { label: 'Trial', className: 'bg-blue-100 text-blue-800' },
-            active: { label: 'Active', className: 'bg-green-100 text-green-800' },
-            past_due: { label: 'Past Due', className: 'bg-red-100 text-red-800' },
-            cancelled: { label: 'Cancelled', className: 'bg-gray-100 text-gray-800' }
+            trialing: { label: 'Trial', className: 'bg-green-100 text-green-700 border border-green-200' },
+            active: { label: 'Active', className: 'bg-green-100 text-green-700 border border-green-200' },
+            past_due: { label: 'Past Due', className: 'bg-red-100 text-red-700 border border-red-200' },
+            cancelled: { label: 'Cancelled', className: 'bg-gray-100 text-gray-700 border border-gray-200' }
         };
 
         const config = statusConfig[status];
         return config ? (
-            <span className={`px-2 py-1 text-xs rounded-full ${config.className}`}>
-        {config.label}
-      </span>
+            <span className={`px-3 py-1.5 text-xs font-semibold rounded-md ${config.className}`}>
+                {config.label}
+            </span>
         ) : null;
     };
 
@@ -142,11 +148,7 @@ export default function ClientLayoutClient({
                         <div className="flex items-center gap-4">
                             {/* Plan and Status Display */}
                             <div className="flex items-center gap-2">
-                <span className={`text-sm font-medium ${
-                    planType === 'none' ? 'text-gray-500' : 'text-gray-900'
-                }`}>
-                  {getPlanDisplay()}
-                </span>
+                                {getPlanDisplay()}
                                 {getStatusBadge()}
                             </div>
 
@@ -154,15 +156,23 @@ export default function ClientLayoutClient({
                             {planType === 'none' && (
                                 <Link
                                     href={`/dashboard/${clientId}/subscription`}
-                                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                                 >
                                     Start Free Trial
                                 </Link>
                             )}
 
+                            {/* Feedback Button */}
+                            <Link
+                                href={`/contact?from=dashboard&clientId=${clientId}`}
+                                className="px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                            >
+                                Give Feedback
+                            </Link>
+
                             <button
                                 onClick={() => router.push('/dashboard/logout')}
-                                className="px-4 py-2 text-sm text-red-600 hover:text-red-800"
+                                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                             >
                                 Sign Out
                             </button>
