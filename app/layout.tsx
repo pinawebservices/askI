@@ -14,10 +14,14 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-    title: "Lex - Your New Business Agent",
-    description:
-        "Fin is the best-performing and most powerful AI Agent, resolving more complex queries and delivering higher resolution rates than any other AI Agent.",
-    generator: "v0.app",
+    title: "WidgetWise - AI Chatbot for Lead Generation & Customer Support",
+    description: "Turn your website into a 24/7 lead generation machine with WidgetWise AI chatbots. Capture more leads, answer customer questions instantly, and scale your business without hiring. Start your 14-day free trial today.",
+    openGraph: {
+        title: "WidgetWise - AI Chatbot for Lead Generation",
+        description: "Capture more leads and provide instant customer support with AI-powered chatbots. 14-day free trial, no credit card required.",
+        type: "website",
+        url: "https://www.aiwidgetwise.com",
+    },
 }
 
 export default function RootLayout({
