@@ -201,7 +201,7 @@ export default function ApartmentsPage(): React.JSX.Element {
         {/* Footer CTA */}
         <div className="py-12 bg-gradient-to-r from-gray-900 to-blue-900 text-white">
           <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h3 className="text-2xl font-bold mb-4">Questions? Our AI Assistant is Here 24/7! 🤖</h3>
+            <h3 className="text-2xl font-bold mb-4">Questions? Our AI Agent is Here 24/7! 🤖</h3>
             <p className="text-lg text-blue-100">
               Get instant answers about pricing, availability, amenities, and schedule your tour!
             </p>
