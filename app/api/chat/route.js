@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import validator from 'validator';
 import { IndustryConfig, loadIndustryConfigs } from '@/lib/industries';
-import {sendLeadNotificationEmail} from "@/lib/services/notifications/emailNotifications.js";
+import {sendLeadNotificationEmail, generateConversationSummary} from "@/lib/services/notifications/emailNotifications.js";
 
 // Rate limiting
 const requestCounts = new Map();  // Stores request history for each client
@@ -919,17 +919,24 @@ async function captureAndNotifyLead(leadInfo, clientId, conversationId) {
             conversation_length: leadInfo.conversation?.length || 0
         });
 
+        // Generate AI summary before saving
+        // DEBUG
+        //console.log('🤖 Generating AI conversation summary...');
+        const aiSummary = await generateConversationSummary(leadInfo.conversation);
+        //console.log('✅ AI summary generated:', aiSummary ? 'Success' : 'Failed');
+
         const {data, error} = await supabaseAdmin
             .from('captured_leads')
             .insert({
                 client_id: clientId,
-                conversation_id: conversationId,  // Add this!
+                conversation_id: conversationId,
                 email: leadInfo.email,
                 phone: leadInfo.phone,
                 name: leadInfo.name,
                 lead_score: leadInfo.score,
                 captured_at: leadInfo.timestamp,
-                conversation_summary: leadInfo.conversation
+                conversation_summary: leadInfo.conversation,
+                ai_summary: aiSummary
             })
             .select()
             .single();

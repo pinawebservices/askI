@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       captured_leads: {
         Row: {
+          ai_summary: string | null
           captured_at: string | null
           client_id: string
           company: string | null
@@ -26,13 +27,19 @@ export type Database = {
           email: string | null
           id: string
           inquiry_type: string | null
+          last_contacted_at: string | null
           lead_score: number | null
           name: string | null
+          notes: string | null
           notification_sent: boolean | null
           phone: string | null
+          source: string | null
+          status: string | null
+          tags: string[] | null
           updated_at: string | null
         }
         Insert: {
+          ai_summary?: string | null
           captured_at?: string | null
           client_id: string
           company?: string | null
@@ -43,13 +50,19 @@ export type Database = {
           email?: string | null
           id?: string
           inquiry_type?: string | null
+          last_contacted_at?: string | null
           lead_score?: number | null
           name?: string | null
+          notes?: string | null
           notification_sent?: boolean | null
           phone?: string | null
+          source?: string | null
+          status?: string | null
+          tags?: string[] | null
           updated_at?: string | null
         }
         Update: {
+          ai_summary?: string | null
           captured_at?: string | null
           client_id?: string
           company?: string | null
@@ -60,10 +73,15 @@ export type Database = {
           email?: string | null
           id?: string
           inquiry_type?: string | null
+          last_contacted_at?: string | null
           lead_score?: number | null
           name?: string | null
+          notes?: string | null
           notification_sent?: boolean | null
           phone?: string | null
+          source?: string | null
+          status?: string | null
+          tags?: string[] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -628,36 +646,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      training_pairs: {
-        Row: {
-          answer: string
-          category: string | null
-          client_id: string
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          question: string
-        }
-        Insert: {
-          answer: string
-          category?: string | null
-          client_id: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          question: string
-        }
-        Update: {
-          answer?: string
-          category?: string | null
-          client_id?: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          question?: string
-        }
-        Relationships: []
       }
       users: {
         Row: {
