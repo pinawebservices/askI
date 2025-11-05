@@ -236,6 +236,17 @@ export default function ClientLayoutClient({
                                 isCollapsed={isSidebarCollapsed}
                             />
 
+                            <SidebarLink
+                                href={hasFeature('agent_config')
+                                    ? `/dashboard/${clientId}/leads`
+                                    : `/dashboard/${clientId}/subscription`}
+                                icon="📋"
+                                label="Leads"
+                                disabled={!hasFeature('agent_config')}
+                                badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
+                                isCollapsed={isSidebarCollapsed}
+                            />
+
                             {/*/!* Show features based on plan *!/*/}
                             {/*{canAccessPlan('pro') && (*/}
                             {/*    <>*/}
