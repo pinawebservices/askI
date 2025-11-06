@@ -21,7 +21,8 @@ const FEATURE_GATES = {
         'agent_config',
         'email_notifications',
         'basic_customization',
-        'standard_support'
+        'standard_support',
+        'analytics'
     ],
     pro: [
         'agent_config',
