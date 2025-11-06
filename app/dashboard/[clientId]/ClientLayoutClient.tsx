@@ -247,6 +247,17 @@ export default function ClientLayoutClient({
                                 isCollapsed={isSidebarCollapsed}
                             />
 
+                            <SidebarLink
+                                href={hasFeature('analytics')
+                                    ? `/dashboard/${clientId}/analytics`
+                                    : `/dashboard/${clientId}/subscription`}
+                                icon="📊"
+                                label="Analytics"
+                                disabled={!hasFeature('analytics')}
+                                badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
+                                isCollapsed={isSidebarCollapsed}
+                            />
+
                             {/*/!* Show features based on plan *!/*/}
                             {/*{canAccessPlan('pro') && (*/}
                             {/*    <>*/}
