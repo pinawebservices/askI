@@ -4,8 +4,9 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSubscription } from '@/app/contexts/subscription-context';
+import { createClient } from '@/lib/supabase-client';
 
 type PlanType = 'none' | 'basic' | 'pro' | 'premium';
 type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'cancelled' | null;
@@ -91,6 +92,50 @@ export default function ClientLayoutClient({
         hasFeature,
         canAccessPlan
     } = useSubscription();
+
+    // Security check: Verify user account status
+    useEffect(() => {
+        const checkUserStatus = async () => {
+            try {
+                const supabase = createClient();
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+                if (authError || !user) {
+                    // Not authenticated, redirect to login
+                    router.push('/login');
+                    return;
+                }
+
+                // Check user status in database
+                const response = await fetch('/api/user/status');
+                if (!response.ok) {
+                    // If API fails, sign them out to be safe
+                    router.push('/dashboard/logout');
+                    return;
+                }
+
+                const data = await response.json();
+
+                // If user is not active (removed, banned, etc), sign them out
+                if (data.status !== 'active') {
+                    alert('Your account has been deactivated. Please contact your administrator.');
+                    router.push('/dashboard/logout');
+                }
+            } catch (error) {
+                console.error('Error checking user status:', error);
+                // On error, sign out to be safe
+                router.push('/dashboard/logout');
+            }
+        };
+
+        // Check immediately on mount
+        checkUserStatus();
+
+        // Re-check every 30 seconds to catch mid-session removals
+        const interval = setInterval(checkUserStatus, 30000);
+
+        return () => clearInterval(interval);
+    }, [router]);
 
     // Plan display helper
     const getPlanDisplay = () => {
@@ -255,6 +300,17 @@ export default function ClientLayoutClient({
                                 label="Analytics"
                                 disabled={!hasFeature('analytics')}
                                 badge={planType === 'none' ? 'Requires Plan' : (!isActive ? 'Inactive' : null)}
+                                isCollapsed={isSidebarCollapsed}
+                            />
+
+                            <SidebarLink
+                                href={planType !== 'none'
+                                    ? `/dashboard/${clientId}/team`
+                                    : `/dashboard/${clientId}/subscription`}
+                                icon="👥"
+                                label="Team"
+                                disabled={planType === 'none'}
+                                badge={planType === 'none' ? 'Requires Plan' : null}
                                 isCollapsed={isSidebarCollapsed}
                             />
 

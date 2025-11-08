@@ -410,6 +410,82 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          first_name: string | null
+          id: string
+          invited_by: string
+          last_name: string | null
+          organization_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          role: string
+          status: string
+          token: string | null
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invited_by: string
+          last_name?: string | null
+          organization_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role: string
+          status?: string
+          token?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invited_by?: string
+          last_name?: string | null
+          organization_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role?: string
+          status?: string
+          token?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           billing_email: string | null
@@ -658,6 +734,7 @@ export type Database = {
           organization_id: string | null
           phone: string | null
           role: string | null
+          status: string
           updated_at: string | null
         }
         Insert: {
@@ -670,6 +747,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           role?: string | null
+          status?: string
           updated_at?: string | null
         }
         Update: {
@@ -682,6 +760,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           role?: string | null
+          status?: string
           updated_at?: string | null
         }
         Relationships: [

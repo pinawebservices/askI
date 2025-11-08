@@ -54,7 +54,9 @@ export default function LoginPage() {
                 router.push('/dashboard');
             }
         } catch (error: any) {
-            setError(error.message);
+            // Replace "banned" with "deactivated" for better UX
+            const errorMessage = error.message?.replace(/banned/gi, 'deactivated') || error.message;
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

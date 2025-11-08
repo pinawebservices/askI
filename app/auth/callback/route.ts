@@ -9,10 +9,12 @@ export async function GET(request: NextRequest) {
     const token_hash = requestUrl.searchParams.get('token_hash');
     const type = requestUrl.searchParams.get('type');
     const code = requestUrl.searchParams.get('code');
-    const next = requestUrl.searchParams.get('next') || '/';
+    const redirect_to = requestUrl.searchParams.get('redirect_to');
+    const next = requestUrl.searchParams.get('next') || redirect_to || '/';
     const error_description = requestUrl.searchParams.get('error_description');
 
-    console.log('Auth callback params:', { token_hash, type, code, next, error_description });
+    // DEBUG
+    // console.log('Auth callback params:', { token_hash, type, code, next, redirect_to, error_description });
 
     if (error_description) {
         console.error('Auth callback error:', error_description);
