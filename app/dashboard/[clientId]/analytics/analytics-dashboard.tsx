@@ -357,7 +357,7 @@ export function AnalyticsDashboard({
             {/* Peak Usage Times Chart */}
             <div className="bg-white rounded-lg shadow mb-4">
                 <div className="p-6">
-                    <h2 className="text-xl font-semibold mb-1">Peak Usage Times</h2>
+                    <h2 className="text-xl font-semibold mb-1">Peak Conversation Times</h2>
                     <p className="text-sm text-gray-600 mb-4">Unique conversations by hour of day</p>
 
                     {peakUsageData.some(d => d.conversations > 0) ? (
