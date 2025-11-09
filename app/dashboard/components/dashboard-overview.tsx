@@ -7,9 +7,10 @@ import { useSubscription } from '@/app/contexts/subscription-context';
 
 interface DashboardOverviewProps {
     clientId: string;
+    firstName?: string | null;
 }
 
-export function DashboardOverview({ clientId }: DashboardOverviewProps) {
+export function DashboardOverview({ clientId, firstName }: DashboardOverviewProps) {
     const { planType, status } = useSubscription();
     const { completedSteps, isLoading, checkStepCompletion } = useSetupProgress(clientId);
     const [instructionsDismissed, setInstructionsDismissed] = useState(false);
@@ -44,9 +45,11 @@ export function DashboardOverview({ clientId }: DashboardOverviewProps) {
         <div>
             {/* Dashboard Header */}
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                    Welcome {firstName ? firstName : 'back'}!
+                </h1>
                 <p className="text-gray-600 mt-2">
-                    Welcome back! Here&apos;s what&apos;s happening with your AI agent.
+                    Here&apos;s what&apos;s happening with your AI agent.
                 </p>
             </div>
 

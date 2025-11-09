@@ -3,6 +3,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { AutoExpandTextarea } from '@/app/dashboard/components/auto-expand-textarea';
+
+// Predefined dental service categories
+const PREDEFINED_CATEGORIES = [
+    'General Dentistry',
+    'Cosmetic Dentistry',
+    'Orthodontics',
+    'Oral Surgery',
+    'Pediatric Dentistry',
+    'Periodontics',
+    'Endodontics',
+    'Prosthodontics',
+];
 
 interface ClientService {
     id?: string;
@@ -43,6 +56,38 @@ export default function ServicesPage() {
         is_active: true
     });
 
+    // Service FAQs state
+    const [serviceFaqs, setServiceFaqs] = useState<Array<{ question: string; answer: string }>>([
+        { question: '', answer: '' }
+    ]);
+
+    // Category selection state
+    const [isOtherCategory, setIsOtherCategory] = useState(false);
+
+    // Track expanded service descriptions
+    const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
+
+    const toggleDescription = (serviceId: string) => {
+        const newExpanded = new Set(expandedDescriptions);
+        if (newExpanded.has(serviceId)) {
+            newExpanded.delete(serviceId);
+        } else {
+            newExpanded.add(serviceId);
+        }
+        setExpandedDescriptions(newExpanded);
+    };
+
+    // Get all available categories (predefined + custom from existing services)
+    const getAvailableCategories = (): string[] => {
+        // Extract custom categories from existing services
+        const customCategories = services
+            .map(s => s.category)
+            .filter((cat): cat is string => !!cat && !PREDEFINED_CATEGORIES.includes(cat))
+            .filter((cat, index, self) => self.indexOf(cat) === index); // unique
+
+        return [...PREDEFINED_CATEGORIES, ...customCategories];
+    };
+
     const loadServices = useCallback(async () => {
         try {
             const response = await fetch(`/api/services/${clientId}`);
@@ -72,10 +117,13 @@ export default function ServicesPage() {
                 return;
             }
 
+            // Format FAQs array back to text for database storage
+            const formattedFaqText = formatFaqsToText(serviceFaqs);
+
             const method = editingService?.id ? 'PUT' : 'POST';
             const body = editingService?.id
-                ? { ...formData, id: editingService.id }
-                : formData;
+                ? { ...formData, service_faqs: formattedFaqText || null, id: editingService.id }
+                : { ...formData, service_faqs: formattedFaqText || null };
 
             const response = await fetch(`/api/services/${clientId}`, {
                 method,
@@ -115,9 +163,105 @@ export default function ServicesPage() {
         }
     }
 
+    // FAQ management functions
+    const parseFaqText = (faqText: string): Array<{ question: string; answer: string }> => {
+        if (!faqText) return [{ question: '', answer: '' }];
+
+        const faqs: Array<{ question: string; answer: string }> = [];
+        const lines = faqText.split('\n');
+        let currentQuestion = '';
+        let currentAnswer = '';
+
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            const lowerLine = trimmedLine.toLowerCase();
+
+            if (lowerLine.startsWith('question:') || lowerLine.startsWith('q:')) {
+                // Save previous FAQ if exists
+                if (currentQuestion && currentAnswer) {
+                    faqs.push({ question: currentQuestion, answer: currentAnswer });
+                }
+                // Start new question
+                currentQuestion = trimmedLine.replace(/^questions?:\s*/i, '').trim();
+                currentAnswer = '';
+            } else if (lowerLine.startsWith('answer:') || lowerLine.startsWith('a:')) {
+                currentAnswer = trimmedLine.replace(/^answers?:\s*/i, '').trim();
+            } else if (currentAnswer && trimmedLine) {
+                // Continue multi-line answer
+                currentAnswer += ' ' + trimmedLine;
+            } else if (currentQuestion && !currentAnswer && trimmedLine) {
+                // Continue multi-line question
+                currentQuestion += ' ' + trimmedLine;
+            }
+        }
+
+        // Save last FAQ
+        if (currentQuestion && currentAnswer) {
+            faqs.push({ question: currentQuestion, answer: currentAnswer });
+        }
+
+        return faqs.length > 0 ? faqs : [{ question: '', answer: '' }];
+    };
+
+    const formatFaqsToText = (faqs: Array<{ question: string; answer: string }>): string => {
+        return faqs
+            .filter(faq => faq.question.trim() || faq.answer.trim())
+            .map(faq => `Question: ${faq.question}\nAnswer: ${faq.answer}`)
+            .join('\n\n');
+    };
+
+    const addServiceFaqField = () => {
+        setServiceFaqs([...serviceFaqs, { question: '', answer: '' }]);
+    };
+
+    const removeServiceFaqField = (index: number) => {
+        const newFaqs = serviceFaqs.filter((_, i) => i !== index);
+        setServiceFaqs(newFaqs.length > 0 ? newFaqs : [{ question: '', answer: '' }]);
+    };
+
+    const updateServiceFaqQuestion = (index: number, value: string) => {
+        const newFaqs = [...serviceFaqs];
+        newFaqs[index].question = value;
+        setServiceFaqs(newFaqs);
+    };
+
+    const updateServiceFaqAnswer = (index: number, value: string) => {
+        const newFaqs = [...serviceFaqs];
+        newFaqs[index].answer = value;
+        setServiceFaqs(newFaqs);
+    };
+
+    // Category change handler
+    const handleCategoryChange = (value: string) => {
+        if (value === 'other') {
+            setIsOtherCategory(true);
+            setFormData({ ...formData, category: '' });
+        } else {
+            setIsOtherCategory(false);
+            setFormData({ ...formData, category: value });
+        }
+    };
+
     function editService(service: ClientService) {
         setEditingService(service);
         setFormData(service);
+
+        // Check if service has a custom category (not in predefined list)
+        const availableCategories = getAvailableCategories();
+        if (service.category && !availableCategories.includes(service.category)) {
+            setIsOtherCategory(true);
+        } else {
+            setIsOtherCategory(false);
+        }
+
+        // Parse service FAQs if they exist
+        if (service.service_faqs) {
+            const parsed = parseFaqText(service.service_faqs);
+            setServiceFaqs(parsed);
+        } else {
+            setServiceFaqs([{ question: '', answer: '' }]);
+        }
+
         setIsAddingNew(false);
     }
 
@@ -132,6 +276,8 @@ export default function ServicesPage() {
             service_faqs: '',
             is_active: true
         });
+        setServiceFaqs([{ question: '', answer: '' }]);
+        setIsOtherCategory(false);
         setEditingService(null);
         setIsAddingNew(false);
     }
@@ -220,13 +366,43 @@ export default function ServicesPage() {
                             <label className="block text-sm font-medium mb-1">
                                 Category
                             </label>
-                            <input
-                                type="text"
-                                value={formData.category || ''}
-                                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., Legal Services"
-                            />
+                            {!isOtherCategory ? (
+                                <select
+                                    value={formData.category || ''}
+                                    onChange={(e) => handleCategoryChange(e.target.value)}
+                                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Select a category...</option>
+                                    {getAvailableCategories().map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                    <option value="other">Other (Custom Category)</option>
+                                </select>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={formData.category || ''}
+                                        onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                        className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter custom category..."
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsOtherCategory(false);
+                                            setFormData({...formData, category: ''});
+                                        }}
+                                        className="px-3 py-2 text-gray-600 hover:text-gray-800 border rounded hover:bg-gray-50"
+                                        title="Back to dropdown"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -259,7 +435,7 @@ export default function ServicesPage() {
                             <label className="block text-sm font-medium mb-1">
                                 Service Description
                             </label>
-                            <textarea
+                            <AutoExpandTextarea
                                 value={formData.service_description || ''}
                                 onChange={(e) => setFormData({...formData, service_description: e.target.value})}
                                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -269,26 +445,77 @@ export default function ServicesPage() {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">
+                            <label className="block text-sm font-medium mb-2">
                                 Service FAQs
+                                <span className="text-sm text-gray-500 ml-2">(Questions specific to this service)</span>
                             </label>
-                            <label className="block text-sm font-normal mb-1">
-                                Add frequently asked questions specific to this service. Each Q&A pair should be on separate lines.
+                            <label className="block text-sm font-normal text-gray-600 mb-4">
+                                Add frequently asked questions specific to this service.
                             </label>
-                            <textarea
-                                value={formData.service_faqs || ''}
-                                onChange={(e) => setFormData({...formData, service_faqs: e.target.value})}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                rows={12}
-                                placeholder={`Question: What should I prepare beforehand?
-Answer: You should prepare...
 
-Question: Can this service be done remotely or is in-person required?
-Answer: We offer both options. Remote consultations are conducted via secure video conferencing...
+                            <div className="space-y-4">
+                                {serviceFaqs.map((faq, index) => (
+                                    <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        <div className="space-y-3">
+                                            {/* Question Input */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Question {index + 1}
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={faq.question}
+                                                    onChange={(e) => updateServiceFaqQuestion(index, e.target.value)}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="e.g., What should I prepare beforehand?"
+                                                />
+                                            </div>
 
-Question: Are there any health conditions that would prevent me from receiving this treatment?
-Answer: Please inform us if you're pregnant, have high blood pressure, skin conditions, or recent surgeries. We'll adjust the treatment or recommend alternatives...`}
-                            />
+                                            {/* Answer Input */}
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                    Answer {index + 1}
+                                                </label>
+                                                <AutoExpandTextarea
+                                                    value={faq.answer}
+                                                    onChange={(e) => updateServiceFaqAnswer(index, e.target.value)}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="e.g., You should prepare any relevant medical history..."
+                                                    rows={3}
+                                                />
+                                            </div>
+
+                                            {/* Remove Button */}
+                                            {serviceFaqs.length > 1 && (
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeServiceFaqField(index)}
+                                                        className="text-sm text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1 rounded transition-colors flex items-center gap-1"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        Remove FAQ
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Add FAQ Button */}
+                                <button
+                                    type="button"
+                                    onClick={addServiceFaqField}
+                                    className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add Another FAQ
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -342,9 +569,21 @@ Answer: Please inform us if you're pregnant, have high blood pressure, skin cond
                                                         </p>
                                                     )}
                                                     {service.service_description && (
-                                                        <p className="text-sm text-gray-600 mt-2">
-                                                            {service.service_description}
-                                                        </p>
+                                                        <div className="mt-2">
+                                                            <p className="text-sm text-gray-600">
+                                                                {service.service_description.length > 150 && !expandedDescriptions.has(service.id!)
+                                                                    ? `${service.service_description.substring(0, 150)}...`
+                                                                    : service.service_description}
+                                                            </p>
+                                                            {service.service_description.length > 150 && (
+                                                                <button
+                                                                    onClick={() => toggleDescription(service.id!)}
+                                                                    className="text-xs text-blue-600 hover:text-blue-800 mt-1 font-medium"
+                                                                >
+                                                                    {expandedDescriptions.has(service.id!) ? 'Show less' : 'Show more'}
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     )}
                                                     {service.service_faqs && (
                                                         <div className="mt-2 text-xs text-gray-500">

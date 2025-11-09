@@ -4,6 +4,7 @@ import type { Client } from '@/types/database';
 import { createClient } from '@/lib/supabase/server-client';
 import PricingCardsWrapper from "@/app/dashboard/components/pricing-cards-wrapper";
 import WelcomeAboard from "@/app/dashboard/components/welcome-aboard";
+import {NextResponse} from "next/server";
 
 interface ClientDashboardProps {
     params: Promise<{  // Note: params is a Promise in Next.js 15!
@@ -22,6 +23,23 @@ export default async function ClientDashboard({
     const isSuccess = search?.success === 'true' || !!search?.session_id;
 
     const supabaseServerClient = await createClient();
+
+    // Get authenticated user
+    const { data: { user } } = await supabaseServerClient.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json(
+            { error: 'User not found' },
+            { status: 404 }
+        );
+    }
+
+    // Fetch user's first name from users table
+    const { data: userData } = await supabaseServerClient
+        .from('users')
+        .select('first_name')
+        .eq('id', user?.id)
+        .single();
 
     // Now you can use clientId
     const { data: client, error } = await supabaseServerClient
@@ -69,5 +87,5 @@ export default async function ClientDashboard({
     // Otherwise show normal dashboard with setup instructions
     const { DashboardOverview } = await import('@/app/dashboard/components/dashboard-overview');
 
-    return <DashboardOverview clientId={clientId} />;
+    return <DashboardOverview clientId={clientId} firstName={userData?.first_name} />;
 }
