@@ -165,6 +165,7 @@ export type Database = {
       }
       client_instructions: {
         Row: {
+          accepted_insurance: string | null
           business_hours: string | null
           business_name: string
           business_type: string | null
@@ -187,6 +188,7 @@ export type Database = {
           widget_settings: Json | null
         }
         Insert: {
+          accepted_insurance?: string | null
           business_hours?: string | null
           business_name: string
           business_type?: string | null
@@ -209,6 +211,7 @@ export type Database = {
           widget_settings?: Json | null
         }
         Update: {
+          accepted_insurance?: string | null
           business_hours?: string | null
           business_name?: string
           business_type?: string | null
