@@ -5,15 +5,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AutoExpandTextarea } from '@/app/dashboard/components/auto-expand-textarea';
 
-// Predefined dental service categories
+// Predefined dental service categories (alphabetically sorted)
 const PREDEFINED_CATEGORIES = [
-    'General Dentistry',
     'Cosmetic Dentistry',
-    'Orthodontics',
+    'Endodontics',
+    'General Dentistry',
     'Oral Surgery',
+    'Orthodontics',
     'Pediatric Dentistry',
     'Periodontics',
-    'Endodontics',
     'Prosthodontics',
 ];
 
@@ -77,7 +77,7 @@ export default function ServicesPage() {
         setExpandedDescriptions(newExpanded);
     };
 
-    // Get all available categories (predefined + custom from existing services)
+    // Get all available categories (predefined + custom from existing services), sorted alphabetically
     const getAvailableCategories = (): string[] => {
         // Extract custom categories from existing services
         const customCategories = services
@@ -85,7 +85,10 @@ export default function ServicesPage() {
             .filter((cat): cat is string => !!cat && !PREDEFINED_CATEGORIES.includes(cat))
             .filter((cat, index, self) => self.indexOf(cat) === index); // unique
 
-        return [...PREDEFINED_CATEGORIES, ...customCategories];
+        // Combine predefined and custom categories, then sort alphabetically
+        return [...PREDEFINED_CATEGORIES, ...customCategories].sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
     };
 
     const loadServices = useCallback(async () => {

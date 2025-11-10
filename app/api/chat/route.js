@@ -61,6 +61,72 @@ const StageDescriptions = {
     [LeadCaptureStage.ABANDONED]: 'User abandoned the capture flow'
 };
 
+/**
+ * Generate comprehensive dental practice communication guidelines
+ * @param {string} businessName - Name of the dental practice
+ * @returns {string} - Detailed dental-specific prompt
+ */
+const generateDentalPracticeContext = (businessName) => {
+    return `You are an AI assistant for ${businessName}, a dental practice. Your role is to provide helpful, patient-friendly information while being warm, empathetic, and reassuring.
+
+COMMUNICATION GUIDELINES FOR DENTAL PATIENTS:
+1. Use Patient-Friendly Language:
+   - Say "cavity" instead of "caries"
+   - Say "cleaning" instead of "prophylaxis"
+   - Say "gum disease" instead of "periodontal disease"
+   - Say "nerve" instead of "pulp"
+   - Say "cap" or "crown" for easier understanding
+   - Avoid technical jargon - make information accessible
+
+2. Address Dental Anxiety with Empathy:
+   - Many patients feel nervous about dental visits - acknowledge this naturally
+   - Use calming, reassuring language: "Our team prioritizes your comfort"
+   - Emphasize modern comfort measures and gentle techniques
+   - If a patient seems anxious, say things like: "I understand dental visits can be stressful. Our team is here to make you comfortable"
+   - Never minimize their concerns - validate their feelings
+
+3. Explain Procedures Using "Tell-Show-Do" Approach:
+   - TELL: Explain what the procedure involves in simple terms
+   - SHOW: Describe what they can expect (sensations, duration, steps)
+   - DO: Explain the benefits and outcomes
+   - Example: "A root canal removes infected tissue (TELL), you'll feel pressure but no pain with anesthesia (SHOW), and it saves your natural tooth (DO)"
+
+4. Insurance Discussion:
+   - Discuss coverage naturally when relevant to the conversation
+   - If asked about insurance, mention which providers are accepted
+   - For coverage questions: "Our office will verify your specific benefits and discuss coverage before treatment"
+   - Never quote specific coverage amounts - that requires verification
+
+5. What You CAN Do:
+   - Explain common dental procedures and their purposes
+   - Provide general oral hygiene tips and preventive care advice
+   - Discuss what to expect during typical dental visits
+   - Share information about different types of treatments available
+   - Answer questions about dental health topics in general terms
+
+6. What You CANNOT Do:
+   - Diagnose dental conditions or problems
+   - Recommend specific treatments for individual cases
+   - Provide medical or dental advice for specific symptoms
+   - Prescribe medications or treatment plans
+   - Make definitive statements about what treatment someone needs
+   - Replace a professional dental examination
+
+7. Appropriate Disclaimers:
+   - When discussing symptoms or concerns: "For a proper diagnosis, our dentist would need to examine you"
+   - When asked about treatment needs: "Our dentist can evaluate your specific situation and recommend the best approach"
+   - For urgent issues: "If you're experiencing severe pain or swelling, please call our office right away"
+
+8. Building Trust and Comfort:
+   - Be warm and personable in your responses
+   - Show genuine interest in helping patients feel informed
+   - Emphasize that the dental team is caring and experienced
+   - Mention comfort-focused aspects of the practice when relevant
+   - Make patients feel their questions and concerns are valid and important
+
+Remember: Your goal is to make dental care feel approachable and less intimidating while providing accurate, helpful information that guides patients toward scheduling a visit with our professional team.`;
+};
+
 const generateBasicIndustryContext = (agentConfig) => {
     const businessName = agentConfig?.business_name || 'our business';
     const businessType = agentConfig?.business_type || 'service provider';
@@ -80,7 +146,7 @@ const generateBasicIndustryContext = (agentConfig) => {
         // Medical & Healthcare
         'medical_practice': `You are an AI assistant for ${businessName}, a medical practice. You can provide general health information, explain common medical procedures, and discuss wellness topics. However, you cannot diagnose conditions, recommend treatments, or provide medical advice. Always remind visitors that health concerns should be discussed with a qualified healthcare provider.`,
 
-        'dental_practice': `You are an AI assistant for ${businessName}, a dental practice. You can provide general information about dental hygiene, common procedures, and oral health. However, you cannot diagnose dental conditions or recommend specific treatments. Always remind visitors that dental concerns should be evaluated by a dentist.`,
+        'dental_practice': generateDentalPracticeContext(businessName),
 
         'optometry': `You are an AI assistant for ${businessName}, an optometry clinic. You can provide general information about eye health, vision care, and common vision conditions. However, you cannot diagnose vision problems or recommend specific treatments. Always remind visitors that vision concerns should be evaluated by an eye care professional.`,
 
@@ -151,13 +217,78 @@ IMPORTANT GUIDELINES:
 };
 
 const getLeadCaptureInstructions = (agentConfig) => {
-    return `When a user shows interest in booking, scheduling, pricing, being contacted, or getting in contact with one of our representatives follow this EXACT sequence:
-        
-        1. First ask: "We'd be happy to help you with that! May I have your full name?"
-        2. After receiving name, ask: "Thank you [Name]! What's the best phone number to reach you?"
-        3. After receiving phone, ask: "Perfect! And what's your email address?"
-        4. After receiving email, ALWAYS confirm by responding EXACTLY like this (with line breaks between each line):
+    const isDental = agentConfig?.business_type === 'dental_practice';
+    const hasInsuranceList = agentConfig?.accepted_insurance;
 
+    // Debug
+    // console.log('🔍 Lead Capture Instructions Debug:');
+    // console.log('   business_type:', agentConfig?.business_type);
+    // console.log('   isDental:', isDental);
+    // console.log('   hasInsuranceList:', hasInsuranceList);
+
+    let instructions = `When a user shows interest in booking, scheduling, pricing, being contacted, or getting in contact with one of our representatives follow this EXACT sequence:
+
+        1. First ask: "We'd be happy to help you with that! May I have your full name?"
+
+        2. After receiving name, ask: "Thank you [Name]! What's the best phone number to reach you?"
+           - If they say something like "I don't want to give out my phone number" → Say something professionally and respectfully that you understand but that we need at least a phone number to have someone reach out to them.
+
+        3. After receiving phone, ask: "Perfect! And what's your email address?"
+           - If they say something like "I don't have an email" or "I don't want to give my email" → Respond: "No problem!" but still continue to the next step.`;
+
+    if (isDental) {
+        instructions += `
+
+        4. After the email step (whether they provided email or not), ALWAYS ask: "Do you have dental insurance?"
+
+        5. If they answer YES to insurance:
+           - Ask: "Which insurance provider do you have?"
+           - Capture the provider name`;
+
+        if (hasInsuranceList) {
+            instructions += `
+           - If the provider is in this list (${hasInsuranceList}), respond: "Great! We accept [provider name]."
+           - If NOT in the list, respond: "Thank you for that information. Our office will verify your coverage when we contact you."`;
+        }
+
+        instructions += `
+
+        6. If they answer NO to insurance:
+           - Respond: "No problem! We offer various payment options that our team can discuss with you."
+
+        7. After insurance is captured (or they say no), ALWAYS confirm by responding EXACTLY like this (with line breaks between each line):
+
+           If you have all info (name, phone, email, insurance):
+           "Let me confirm your information:
+
+           **Name:** [captured name]
+           **Phone:** [captured phone]
+           **Email:** [captured email]
+           **Insurance:** [provider name or "No insurance"]
+
+           Is this correct?"
+
+           If they didn't provide email but provided insurance:
+           "Let me confirm your information:
+
+           **Name:** [captured name]
+           **Phone:** [captured phone]
+           **Insurance:** [provider name or "No insurance"]
+
+           Is this correct?"
+
+           CRITICAL: You MUST put each piece of information on its own separate line. DO NOT combine them into one line. DO NOT repeat the information twice.
+
+        8. If they say something like yes/correct/right/yep → Say "Perfect! Someone from our team will contact you within ${agentConfig?.response_time || '24 hours'}."
+
+        9. If they say something like no/wrong/incorrect → Ask "Which part should I correct?" (they can correct name, phone, email, or insurance)`;
+    } else {
+        instructions += `
+             Then proceed to confirmation.
+
+        4. ALWAYS confirm by responding EXACTLY like this (with line breaks between each line):
+
+           If you have all three (name, phone, email):
            "Let me confirm your information:
 
            **Name:** [captured name]
@@ -166,26 +297,30 @@ const getLeadCaptureInstructions = (agentConfig) => {
 
            Is this correct?"
 
-           CRITICAL: You MUST put each piece of information on its own separate line. DO NOT combine them into one line.
-        5. If they say something like "I don't have an email" or "I don't want to give my email" → Respond EXACTLY like this:
-
-           "No problem! Let me confirm your information:
+           If they didn't provide email:
+           "Let me confirm your information:
 
            **Name:** [captured name]
            **Phone:** [captured phone]
 
            Is this correct?"
 
-           CRITICAL: Do NOT repeat the information twice. Only show it once in the confirmation format above.
-        6. If they say something like "I don't want to give out my phone number" → Say something professionally and respectfully that you understand but that we need at least a phone number to have someone reach out to them.
-        7. If they say something like yes/correct/right/yep → Say "Perfect! Someone from our team will contact you within ${agentConfig?.response_time || '24 hours'}."
-        8. If they say something like no/wrong/incorrect → Ask "Which part should I correct?"
-        
-        IMPORTANT: 
+           CRITICAL: You MUST put each piece of information on its own separate line. DO NOT combine them into one line. DO NOT repeat the information twice.
+
+        5. If they say something like yes/correct/right/yep → Say "Perfect! Someone from our team will contact you within ${agentConfig?.response_time || '24 hours'}."
+
+        6. If they say something like no/wrong/incorrect → Ask "Which part should I correct?"`;
+    }
+
+    instructions += `
+
+        IMPORTANT:
         - Ask for ONE piece of information at a time
         - Wait for their response before moving to the next field
         - Always use the confirmation step
         - Be conversational but stay on track`;
+
+    return instructions;
 };
 
 // For Basic Plan (use this now)
@@ -284,7 +419,9 @@ function getLeadCaptureState(conversationId) {
             tempLead: {
                 name: null,
                 phone: null,
-                email: null
+                email: null,
+                has_insurance: null,
+                insurance_provider: null
             },
             awaitingCorrection: false,
             lastUpdated: Date.now()
@@ -528,6 +665,21 @@ export async function POST(request) {
             }
         }
 
+        const captureAndUpdateLeadInsurance = () => {
+            const lastAgentMessage = messages[messages.length - 2]?.content || '';
+            const insuranceData = extractInsurance(userMessage, lastAgentMessage);
+            if (insuranceData) {
+                if (insuranceData.has_insurance !== undefined) {
+                    leadState.tempLead.has_insurance = insuranceData.has_insurance;
+                    console.log(`🏥 Updated Lead State Insurance Status: ${insuranceData.has_insurance}`);
+                }
+                if (insuranceData.insurance_provider) {
+                    leadState.tempLead.insurance_provider = insuranceData.insurance_provider;
+                    console.log(`🏥 Updated Lead State Insurance Provider: ${insuranceData.insurance_provider}`);
+                }
+            }
+        }
+
         const captureLeadInfo = () => {
             const lastAgentMessagePriorToUser = messages[messages.length - 2]?.content?.toLowerCase() || '';
             console.log(' Last agent message prior to user\'s: ', lastAgentMessagePriorToUser);
@@ -537,6 +689,8 @@ export async function POST(request) {
                 captureAndUpdateLeadPhone();
             } else if (lastAgentMessagePriorToUser.includes('email')) {
                 captureAndUpdateLeadEmail();
+            } else if (lastAgentMessagePriorToUser.includes('insurance')) {
+                captureAndUpdateLeadInsurance();
             }
 
             // Check if the current agent message is asking for confirmation
@@ -546,7 +700,7 @@ export async function POST(request) {
 
             // Transition to CONFIRMING if we have at least name and phone, AND agent is asking for confirmation
             if (leadState.tempLead.name && leadState.tempLead.phone && isConfirming) {
-                transitionStage(leadState, LeadCaptureStage.CONFIRMING, 'Confirming captured lead info (with or without email)');
+                transitionStage(leadState, LeadCaptureStage.CONFIRMING, 'Confirming captured lead info (with or without email/insurance)');
             }
         }
 
@@ -822,6 +976,53 @@ function extractPhone(text) {
 }
 
 /**
+ * Extract insurance information from text
+ * @param {string} text - User's response text
+ * @param {string} lastAgentMessage - The agent's previous question
+ * @returns {Object|null} - Object with has_insurance or insurance_provider, or null
+ */
+function extractInsurance(text, lastAgentMessage) {
+    try {
+        const lowerText = text.toLowerCase().trim();
+        const lowerAgentMessage = lastAgentMessage.toLowerCase();
+
+        console.log(` 🏥 Extracting insurance from "${text}"`);
+        console.log(` 🏥 Last agent message: "${lastAgentMessage}"`);
+
+        // If agent asked "do you have insurance"
+        if (lowerAgentMessage.includes('do you have') && lowerAgentMessage.includes('insurance')) {
+            // Check for positive responses
+            const positiveResponses = ['yes', 'yep', 'yeah', 'yea', 'i do', 'i have', 'sure', 'correct', 'right'];
+            if (positiveResponses.some(word => lowerText === word || lowerText.startsWith(word + ' ') || lowerText.includes(' ' + word))) {
+                console.log(` ✅ User has insurance: true`);
+                return { has_insurance: true };
+            }
+
+            // Check for negative responses
+            const negativeResponses = ['no', 'nope', 'nah', 'don\'t', 'dont', 'not', 'i don\'t', 'i do not', 'no i'];
+            if (negativeResponses.some(word => lowerText === word || lowerText.startsWith(word + ' ') || lowerText.includes(word))) {
+                console.log(` ❌ User has insurance: false`);
+                return { has_insurance: false };
+            }
+        }
+
+        // If agent asked "which provider" or "which insurance"
+        if ((lowerAgentMessage.includes('provider') || lowerAgentMessage.includes('which insurance') || lowerAgentMessage.includes('insurance company'))
+            && text.length > 0 && text.length < 100) {
+            // Extract the provider name - just take the text as is
+            const provider = text.trim();
+            console.log(` 🏥 Insurance provider: ${provider}`);
+            return { insurance_provider: provider };
+        }
+
+        return null;
+    } catch (e) {
+        console.error('Insurance extraction error:', e);
+        return null;
+    }
+}
+
+/**
  * Captures lead information from chat conversations and sends notifications to clients.
  * Prevents duplicate leads by checking for existing records with the same conversation ID.
  * Updates existing leads with new information when available.
@@ -933,6 +1134,8 @@ async function captureAndNotifyLead(leadInfo, clientId, conversationId) {
                 email: leadInfo.email,
                 phone: leadInfo.phone,
                 name: leadInfo.name,
+                has_insurance: leadInfo.has_insurance,
+                insurance_provider: leadInfo.insurance_provider,
                 lead_score: leadInfo.score,
                 captured_at: leadInfo.timestamp,
                 conversation_summary: leadInfo.conversation,
