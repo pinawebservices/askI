@@ -194,6 +194,17 @@ export function LeadDetailModal({ lead, clientId, onClose }: LeadDetailModalProp
                                     )
                                 }
                             />
+                            {(lead.has_insurance !== null && lead.has_insurance !== undefined) && (
+                                <InfoItem
+                                    icon={<Building className="h-4 w-4" />}
+                                    label="Insurance"
+                                    value={
+                                        lead.has_insurance
+                                            ? (lead.insurance_provider || 'Yes (provider not specified)')
+                                            : 'No Insurance'
+                                    }
+                                />
+                            )}
                             <InfoItem
                                 icon={<Calendar className="h-4 w-4" />}
                                 label="Captured"

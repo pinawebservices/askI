@@ -25,8 +25,10 @@ export type Database = {
           created_at: string | null
           custom_fields: Json | null
           email: string | null
+          has_insurance: boolean | null
           id: string
           inquiry_type: string | null
+          insurance_provider: string | null
           last_contacted_at: string | null
           lead_score: number | null
           name: string | null
@@ -48,8 +50,10 @@ export type Database = {
           created_at?: string | null
           custom_fields?: Json | null
           email?: string | null
+          has_insurance?: boolean | null
           id?: string
           inquiry_type?: string | null
+          insurance_provider?: string | null
           last_contacted_at?: string | null
           lead_score?: number | null
           name?: string | null
@@ -71,8 +75,10 @@ export type Database = {
           created_at?: string | null
           custom_fields?: Json | null
           email?: string | null
+          has_insurance?: boolean | null
           id?: string
           inquiry_type?: string | null
+          insurance_provider?: string | null
           last_contacted_at?: string | null
           lead_score?: number | null
           name?: string | null

@@ -36,7 +36,7 @@ interface LeadsTableProps {
     clientId: string;
 }
 
-type SortField = 'captured_at' | 'name' | 'lead_score' | 'status' | 'last_contacted_at';
+type SortField = 'captured_at' | 'name' | 'has_insurance' | 'status' | 'last_contacted_at'; // Replaced 'lead_score' with 'has_insurance'
 type SortDirection = 'asc' | 'desc';
 
 export function LeadsTable({ leads, clientId }: LeadsTableProps) {
@@ -103,13 +103,24 @@ export function LeadsTable({ leads, clientId }: LeadsTableProps) {
                                 </Button>
                             </TableHead>
                             <TableHead>Contact Info</TableHead>
-                            <TableHead>
+                            {/* Commented out Score column - replaced with Insurance */}
+                            {/*<TableHead>
                                 <Button
                                     variant="ghost"
                                     onClick={() => toggleSort('lead_score')}
                                     className="flex items-center gap-2"
                                 >
                                     Score
+                                    <ArrowUpDown className="h-4 w-4" />
+                                </Button>
+                            </TableHead>*/}
+                            <TableHead>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => toggleSort('has_insurance')}
+                                    className="flex items-center gap-2"
+                                >
+                                    Insurance
                                     <ArrowUpDown className="h-4 w-4" />
                                 </Button>
                             </TableHead>
@@ -189,9 +200,23 @@ export function LeadsTable({ leads, clientId }: LeadsTableProps) {
                                         )}
                                     </div>
                                 </TableCell>
-                                <TableCell>
+                                {/* Commented out Score cell - replaced with Insurance */}
+                                {/*<TableCell>
                                     {lead.lead_score !== null && lead.lead_score !== undefined ? (
                                         <LeadScoreBadge score={lead.lead_score} />
+                                    ) : (
+                                        <span className="text-gray-400">N/A</span>
+                                    )}
+                                </TableCell>*/}
+                                <TableCell>
+                                    {lead.has_insurance === true ? (
+                                        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                                            Yes
+                                        </Badge>
+                                    ) : lead.has_insurance === false ? (
+                                        <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
+                                            No
+                                        </Badge>
                                     ) : (
                                         <span className="text-gray-400">N/A</span>
                                     )}
