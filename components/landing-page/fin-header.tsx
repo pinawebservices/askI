@@ -27,7 +27,7 @@ export function FinHeader() {
                     Login
                 </Button>
                 <Button
-                    className="bg-black text-white hover:bg-gray-800"
+                    className="bg-[#96a4df] hover:bg-[#96a4df]/90 text-white border border-white/20 shadow-sm"
                     onClick={() => router.push('/signup')}
                 >
                     Start free trial

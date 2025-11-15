@@ -154,9 +154,6 @@ export default function App() {
 
             {/* Hero Section */}
             <section className="w-full px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative">
-                {/* Subtle gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-chart-1/10 via-chart-2/10 to-chart-3/10 pointer-events-none" />
-
                 <div className="text-center space-y-8 max-w-4xl mx-auto relative">
                     <Badge variant="secondary" className="mx-auto bg-gradient-to-r from-chart-1/10 to-chart-2/10 border-chart-1/20">
                         🤖 New: Advanced lead scoring and qualification features
@@ -172,7 +169,7 @@ export default function App() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button size="lg" className="text-base bg-gradient-to-r from-chart-1 to-chart-2 hover:from-chart-1/90 hover:to-chart-2/90">
+                        <Button size="lg" className="text-base bg-[#96a4df] hover:bg-[#96a4df]/90">
                             Start Free Trial
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
@@ -307,7 +304,7 @@ export default function App() {
                         Join thousands of businesses that are already converting more visitors into customers with ChatAssist.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button size="lg" className="text-base bg-gradient-to-r from-chart-1 to-chart-2 hover:from-chart-1/90 hover:to-chart-2/90">
+                        <Button size="lg" className="text-base bg-[#96a4df] hover:bg-[#96a4df]/90">
                             Start Free Trial
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>

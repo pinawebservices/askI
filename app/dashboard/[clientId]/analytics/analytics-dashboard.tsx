@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { ChatConversation, CapturedLead } from '@/types/database';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { format, parseISO } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { AnalyticsFilters } from './analytics-filters';
 
 interface AnalyticsDashboardProps {
@@ -12,6 +12,7 @@ interface AnalyticsDashboardProps {
     leads: CapturedLead[];
     clientId: string;
     businessName: string;
+    timezone: string;
     dateFrom: string;
     dateTo: string;
 }
@@ -20,6 +21,7 @@ export function AnalyticsDashboard({
     conversations,
     leads,
     businessName,
+    timezone,
     dateFrom,
     dateTo
 }: AnalyticsDashboardProps) {
@@ -58,7 +60,8 @@ export function AnalyticsDashboard({
         const dateConversationsMap = new Map<string, Set<string>>();
 
         conversations.forEach(conv => {
-            const date = format(parseISO(conv.created_at), 'MMM dd');
+            // Convert UTC timestamp to business timezone for accurate date grouping
+            const date = formatInTimeZone(conv.created_at, timezone, 'MMM dd');
             if (!dateConversationsMap.has(date)) {
                 dateConversationsMap.set(date, new Set());
             }
@@ -68,7 +71,7 @@ export function AnalyticsDashboard({
         return Array.from(dateConversationsMap.entries())
             .map(([date, conversationSet]) => ({ date, conversations: conversationSet.size }))
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }, [conversations]);
+    }, [conversations, timezone]);
 
     // Peak usage times (by hour of day) - counting unique conversations with business hours focus
     const peakUsageData = useMemo(() => {
@@ -93,7 +96,9 @@ export function AnalyticsDashboard({
             const conversationSet = new Set<string>();
 
             conversations.forEach(conv => {
-                const hour = parseISO(conv.created_at).getHours();
+                // Convert UTC timestamp to business timezone to get correct hour
+                const zonedDate = toZonedTime(conv.created_at, timezone);
+                const hour = zonedDate.getHours();
                 if (bucket.hours.includes(hour)) {
                     conversationSet.add(conv.conversation_id);
                 }
@@ -107,7 +112,7 @@ export function AnalyticsDashboard({
         });
 
         return bucketData.sort((a, b) => a.order - b.order);
-    }, [conversations]);
+    }, [conversations, timezone]);
 
     // Common questions - filtered and clustered by keywords
     const commonQuestions = useMemo(() => {

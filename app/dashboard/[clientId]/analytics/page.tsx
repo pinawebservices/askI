@@ -52,10 +52,10 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
         console.error('[Analytics] Error fetching leads:', leadsError);
     }
 
-    // Verify client exists
+    // Verify client exists and get timezone
     const { data: client, error: clientError } = await supabase
         .from('clients')
-        .select('business_name')
+        .select('business_name, timezone')
         .eq('client_id', clientId)
         .single();
 
@@ -69,6 +69,7 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
             leads={leads as CapturedLead[] || []}
             clientId={clientId}
             businessName={client.business_name}
+            timezone={client.timezone || 'America/New_York'}
             dateFrom={dateFrom}
             dateTo={dateTo}
         />

@@ -22,7 +22,7 @@ export function FinHero() {
 
                         <div className="flex gap-4">
                             <Button
-                                className="bg-black text-white hover:bg-gray-800 px-6 py-3"
+                                className="bg-[#96a4df] hover:bg-[#96a4df]/90 px-6 py-3 text-white border border-white/20 shadow-sm"
                                 onClick={() => router.push('/signup')}
                             >
                                 Start free trial

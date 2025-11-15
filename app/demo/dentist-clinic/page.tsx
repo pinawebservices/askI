@@ -3,23 +3,48 @@
 import Script from 'next/script';
 import ChatbotProvider from '@/components/ai-chatbot-demo';
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function DentistClinicPage(): React.JSX.Element {
   return (
       <div className="min-h-screen bg-white">
 
         {/* Hero Section */}
-        <div className="relative bg-gradient-to-r from-teal-400 via-teal-500 to-cyan-500 text-white overflow-hidden">
-          <div className="absolute inset-0 bg-teal-600/20"></div>
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div className="text-center">
+        <div className="relative bg-gradient-to-r from-teal-400 via-teal-500 to-cyan-500 text-white overflow-hidden h-[600px]">
+          {/* Background Image */}
+          <div className="absolute inset-0">
+            <Image
+              src="https://res.cloudinary.com/ddudpjxrp/image/upload/v1763224133/vecteezy_dental-office-with-a-dentist-chair-and-equipment-is-shown_27099970_rs6asx.jpg"
+              alt="Modern dental office"
+              fill
+              className="object-cover opacity-40"
+              priority
+            />
+            <div className="absolute inset-0 bg-black/20"></div>
+          </div>
+
+          {/* Attribution */}
+          <div className="absolute bottom-2 right-2 z-10">
+            <Link
+              href="https://www.vecteezy.com/free-photos/dental-office"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-white/70 hover:text-white/90 transition-colors bg-black/20 px-2 py-1 rounded backdrop-blur-sm"
+            >
+              Dental Office Stock photos by Vecteezy
+            </Link>
+          </div>
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 h-full flex items-center">
+            <div className="text-center w-full">
               <div className="inline-block mb-6">
                 <div className="text-6xl">🦷</div>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold mb-6 drop-shadow-lg">
                 Bright Smile Dental
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-teal-50 font-light max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl mb-8 text-teal-50 font-light max-w-3xl mx-auto drop-shadow-md">
                 Your Family&apos;s Trusted Partner for Comprehensive Dental Care in Miami
               </p>
               <div className="inline-flex bg-white/20 backdrop-blur-sm rounded-full px-8 py-4 text-lg font-medium">

@@ -28,7 +28,7 @@ export function CtaSection() {
                         <Button
                             size="lg"
                             variant="secondary"
-                            className="font-medium group"
+                            className="font-medium group bg-[#96a4df] hover:bg-[#96a4df]/90 text-white border border-white/20 shadow-sm"
                             onClick={() => router.push('/signup')}
                         >
                             Start Free Trial

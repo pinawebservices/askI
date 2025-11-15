@@ -165,7 +165,7 @@ export function PricingCards({ mode = 'landing', onSelectPlan, currentPlan }: Pr
 
                             <CardFooter>
                                 <Button
-                                    className="w-full"
+                                    className={`w-full ${plan.id === 'basic' ? 'bg-[#96a4df] hover:bg-[#96a4df]/90 text-white border border-white/20 shadow-sm' : ''}`}
                                     variant={plan.id === 'basic' ? "default" : "outline"}
                                     onClick={() => handleSelectPlan(plan.id, plan.price)}
                                     disabled={loading === plan.id || currentPlan === plan.id || plan.comingSoon}
