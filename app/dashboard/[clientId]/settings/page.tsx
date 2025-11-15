@@ -27,6 +27,7 @@ interface ClientSettings {
     notification_phone?: string | null;
     notification_preferences: Json| null;
     enable_sms_notifications?: boolean | null;
+    timezone?: string | null;
 }
 
 export default function SettingsPage({ params }: SettingsPageProps) {
@@ -174,7 +175,8 @@ export default function SettingsPage({ params }: SettingsPageProps) {
             const updateData: any = {
                 notification_email: settings.notification_email,
                 notification_phone: settings.notification_phone,
-                notification_preferences: settings.notification_preferences
+                notification_preferences: settings.notification_preferences,
+                timezone: settings.timezone
             };
 
             const { error } = await supabase
@@ -185,7 +187,7 @@ export default function SettingsPage({ params }: SettingsPageProps) {
             if (error) throw error;
 
             // Show success message
-            setSuccessMessage('Notification settings saved successfully!');
+            setSuccessMessage('Settings saved successfully!');
 
             // Regenerate embed code with new settings
             generateEmbedCode(settings);
@@ -235,6 +237,32 @@ export default function SettingsPage({ params }: SettingsPageProps) {
             )}
 
             <div className="grid gap-6">
+
+                {/* Business Settings */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold mb-4">Business Settings</h2>
+
+                    <div className="grid gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Business Timezone
+                            </label>
+                            <select
+                                value={settings?.timezone || 'America/New_York'}
+                                onChange={(e) => handleSettingChange('timezone', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="America/New_York">Eastern Time (ET)</option>
+                                <option value="America/Chicago">Central Time (CT)</option>
+                                <option value="America/Denver">Mountain Time (MT)</option>
+                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                            </select>
+                            <p className="text-xs text-gray-500 mt-1">
+                                This timezone will be used for analytics and reporting
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Notifications */}
                 <div className="bg-white rounded-lg shadow p-6">

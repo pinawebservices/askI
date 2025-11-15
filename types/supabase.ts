@@ -321,6 +321,7 @@ export type Database = {
           organization_id: string | null
           pinecone_namespace: string | null
           plan_type: string | null
+          timezone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -343,6 +344,7 @@ export type Database = {
           organization_id?: string | null
           pinecone_namespace?: string | null
           plan_type?: string | null
+          timezone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -365,6 +367,7 @@ export type Database = {
           organization_id?: string | null
           pinecone_namespace?: string | null
           plan_type?: string | null
+          timezone?: string | null
           updated_at?: string | null
         }
         Relationships: [

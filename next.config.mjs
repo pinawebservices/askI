@@ -7,6 +7,16 @@ const nextConfig = {
         serverComponentsExternalPackages: ['@supabase/supabase-js'],
     },
 
+    // Allow external images from Cloudinary
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'res.cloudinary.com',
+            },
+        ],
+    },
+
     // Security Headers - Protection against common web vulnerabilities
     async headers() {
         return [

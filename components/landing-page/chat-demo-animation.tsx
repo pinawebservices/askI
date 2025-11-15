@@ -21,18 +21,26 @@ interface ChatDemoAnimationProps {
 
 // Default messages if none provided
 const defaultMessages: Message[] = [
-    { role: "assistant", content: "Hi! I'm your AI assistant. How can I help you today?" },
-    { role: "user", content: "I need help understanding your pricing plans" },
-    { role: "assistant", content: "I'd be happy to help you with our pricing! We have three main plans:\n\n• **Basic** - $99/month for small businesses\n• **Professional** - $149/month with advanced features\n• **Premium** - $199/month for established businesses\n\nWhich one would you like to know more about?" },
-    { role: "user", content: "Tell me more about the Professional plan" },
-    { role: "assistant", content: "The Professional plan includes:\n\n• Everything in Basic Plan\n• Document Agent Training\n• Multi-Email Notifications\n• Email + SMS notifications\n• Lead Dashboard\n• Lead Reports\n\n**Note: This plan is coming soon!** Would you like to start with our Basic plan in the meantime?" }
+    { role: "assistant", content: "Hi! I'm here to help answer your questions about our dental services. How can I assist you today?" },
+    { role: "user", content: "Do you accept Delta Dental insurance? I need a cleaning" },
+    { role: "assistant", content: "Yes, we accept Delta Dental! We offer multiple cleaning services, would you like to know more about them?" },
+    { role: "user", content: "Yes, what are my options?" },
+    { role: "assistant", content: "We offer three types of cleanings:\n\n• **Routine Cleaning** - $89\nStandard preventive cleaning for healthy gums\n\n• **Deep Cleaning** - $180 per quadrant\nFor patients with gum disease, removes buildup below the gum line\n\n• **Periodontal Maintenance** - $120\nOngoing care after deep cleaning treatment\n\nWhich one sounds right for you?" },
+    { role: "user", content: "The routine cleaning sounds good" },
+    { role: "assistant", content: "Great! I'd be happy to help you get scheduled for a routine cleaning.\n\nMay I have your name?" },
+    { role: "user", content: "Sarah Johnson" },
+    { role: "assistant", content: "Thanks Sarah! What's the best phone number to reach you?" },
+    { role: "user", content: "555-234-5678" },
+    { role: "assistant", content: "Perfect! And your email address?" },
+    { role: "user", content: "sarah.j@email.com" },
+    { role: "assistant", content: "Thank you! I've captured your information:\n\n• **Name:** Sarah Johnson\n• **Phone:** 555-234-5678\n• **Email:** sarah.j@email.com\n• **Service:** Routine Cleaning\n• **Insurance:** Delta Dental\n\nOur team will contact you shortly to schedule your appointment!" }
 ];
 
 
 const ChatDemoAnimation = ({
                                messages = [],
                                businessName = "AI Agent",
-                               primaryColor = "#000000",
+                               primaryColor = "#07dfc9",
                                typingDelay = 1500, // How long to show typing dots before message appears
                                messageDelay = 3000, // Delay between messages
                                loop = true,
@@ -141,7 +149,7 @@ const ChatDemoAnimation = ({
             <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                 {/* Header */}
                 <div
-                    className="text-white p-4 flex justify-between items-center"
+                    className="text-white p-4 flex justify-between items-center border-b border-white/20 shadow-sm"
                     style={{ backgroundColor: primaryColor }}
                 >
                     <div>
