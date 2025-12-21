@@ -1,10 +1,9 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Client } from '@/types/database';
 import { createClient } from '@/lib/supabase/server-client';
 import PricingCardsWrapper from "@/app/dashboard/components/pricing-cards-wrapper";
 import WelcomeAboard from "@/app/dashboard/components/welcome-aboard";
-import {NextResponse} from "next/server";
 
 interface ClientDashboardProps {
     params: Promise<{  // Note: params is a Promise in Next.js 15!
@@ -28,10 +27,7 @@ export default async function ClientDashboard({
     const { data: { user } } = await supabaseServerClient.auth.getUser();
 
     if (!user) {
-        return NextResponse.json(
-            { error: 'User not found' },
-            { status: 404 }
-        );
+        redirect('/login');
     }
 
     // Fetch user's first name from users table
